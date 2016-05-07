@@ -2,6 +2,6 @@
 
 Lexer::Lexer(const std::string& src, const std::string& rules) : _rules(rules)
 {
-    _data = Rules::readFile(src);
+    _data = Rules::read_file(src);
 }
 

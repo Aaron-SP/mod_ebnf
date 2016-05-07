@@ -19,10 +19,13 @@ protected:
     void parseSymbols();
 public:
     Rules(const std::string& rules);
-    static std::vector<char> readFile(const std::string& file);
-    static std::vector<std::string> Rules::tokenize(std::string source);
+    static std::vector<char> read_file(const std::string& file);
+    static std::vector<std::string> Rules::tokenize(const std::string& source);
+    static std::string& strip_squotes(std::string& str);
+    static std::string& strip_dquotes(std::string& str);
     static std::string& strip_quotes(std::string& str);
-    static void in_quotes(char ch, bool& quotes, char& quote_char);
+    static bool in_quotes(char ch, bool& quotes, char& quote_char);
+    static bool in_brackets(const char ch, bool quotes, bool& in_brackets, char & bracket_char);
 };
 
 #endif
