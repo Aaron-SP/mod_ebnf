@@ -5,6 +5,7 @@
 #include <iterator>
 #include <algorithm>
 #include <stdexcept>
+#include <set>
 
 std::vector<char> Rules::read_file(const std::string& filePath)
 {
@@ -40,7 +41,7 @@ std::string& Rules::strip_dquotes(std::string& str)
     return str;
 }
 
-std::string& Rules::strip_quotes(std::string& str)
+bool Rules::strip_quotes(std::string& str)
 {
     int s_quote = 0; int d_quote = 0;
     for (auto& ch : str)
@@ -77,7 +78,7 @@ std::string& Rules::strip_quotes(std::string& str)
     {
         Rules::strip_dquotes(str);
     }
-    return str;
+    return s_quote || d_quote;
 }
 
 bool Rules::in_quotes(const char ch, bool& quotes, char& quote_char)
@@ -126,17 +127,19 @@ bool Rules::in_brackets(const char ch, bool quotes, bool& in_brackets, char & br
     return action;
 }
 
-std::vector<std::string> Rules::tokenize(const std::string& source)
+std::vector<SyntaxNode> Rules::tokenize(const std::string& source)
 {
-    std::vector<std::string> out;
+    std::vector<SyntaxNode> out;
     size_t start = 0; size_t end = 0;
     const size_t size = source.size();
-
     bool quotes = false;
     bool brackets = false;
     bool bracket_action = false;
     char quote_char = 0;
     char bracket_char = 0;
+
+    // We use root to initialize only
+    SyntaxNode::NodeType last_type = SyntaxNode::ROOT;
 
     // end points to line after current char
     for (size_t end = 0; end < size; end++)
@@ -145,16 +148,18 @@ std::vector<std::string> Rules::tokenize(const std::string& source)
         in_quotes(ch, quotes, quote_char);
         bracket_action = in_brackets(ch, quotes, brackets, bracket_char);
 
+        // Enter bracket
         if (bracket_action && brackets)
         {
             // Skip everything to after bracket
             start = end + 1;
         }
+        // Escape bracket
         else if (bracket_action && !brackets)
         {
             if (end - start > 0)
             {
-                std::vector<std::string> again = tokenize(source.substr(start, end - start));
+                std::vector<SyntaxNode> again = tokenize(source.substr(start, end - start));
                 out.insert(out.end(), again.begin(), again.end());
                 // Move to after bracket
                 start = end + 1;
@@ -163,6 +168,7 @@ std::vector<std::string> Rules::tokenize(const std::string& source)
 
         if (((ch == '|' || ch == ',') && !quotes && !brackets) || end == size - 1)
         {
+            // Get the correct length if reach the end
             if (end == size - 1)
             {
                 end++;
@@ -170,8 +176,23 @@ std::vector<std::string> Rules::tokenize(const std::string& source)
             if (end - start > 0)
             {
                 std::string s = source.substr(start, end - start);
-                strip_quotes(s);
-                out.push_back(s);
+
+                // if it is a string then it is a leaf in the parse tree
+                bool isString = strip_quotes(s);
+                if (ch == '|')
+                {
+                    last_type = SyntaxNode::NodeType::ALTER;
+                }
+                else if (ch == ',')
+                {
+                    last_type = SyntaxNode::NodeType::CONCATE;
+                }
+                else if (last_type == SyntaxNode::ROOT)
+                {
+                    last_type = SyntaxNode::NodeType::EQUALS;
+                }
+                SyntaxNode node(last_type, s, !isString);
+                out.push_back(node);
                 start = end + 1;
             }
         }
@@ -179,11 +200,12 @@ std::vector<std::string> Rules::tokenize(const std::string& source)
     return out;
 }
 
-Rules::Rules(const std::string& rules)
+Rules::Rules(const std::string& rules) : _tree("root")
 {
     _text = Rules::read_file(rules);
     parseRules();
-    parseSymbols();
+    _tree = ParseTree(parseSymbols());
+    std::cout << _tree.getRoot().getSymbol() << std::endl;
 }
 
 void Rules::parseRules()
@@ -199,7 +221,7 @@ void Rules::parseRules()
     {
         const char ch = _text[i];
 
-        // If not whitespace then skip
+        // If whitespace then ignore
         if (std::find(ws.begin(), ws.end(), ch) == ws.end())
         {
             in_quotes(ch, quotes, quote_char);
@@ -213,28 +235,17 @@ void Rules::parseRules()
             rule += ch;
         }
     }
-
+    // If we have quotes turned on then it is a parse error
     if (quotes)
     {
         throw std::runtime_error("Quotation '/\" mismatch. Check rules input file");
     }
 }
 
-void printVector(const std::vector<std::string>& list)
+std::string Rules::parseSymbols()
 {
-    const size_t size = list.size();
-    if (size > 0)
-    {
-        std::cout << list[0];
-        for (size_t i = 1; i < size; i++)
-        {
-            std::cout << '_' << list[i];
-        }
-    }
-}
-
-void Rules::parseSymbols()
-{
+    // Set will store all rhs symbols to determine the start symbol
+    std::set<std::string> set;
     for (const auto& rule : _ruleList)
     {
         size_t found = rule.find('=');
@@ -244,8 +255,11 @@ void Rules::parseSymbols()
             std::string token = rule.substr(0, found);
             // rhs
             std::string equality = rule.substr(found + 1, rule.size() - found - 1);
-
-            std::vector<std::string> symbols = tokenize(equality);
+            // process rhs
+            std::vector<SyntaxNode> symbols = tokenize(equality);
+            // Get the SyntaxNode's symbol and put them in the set
+            std::transform(symbols.begin(), symbols.end(), std::inserter(set, set.end()), SyntaxNode::toString);
+            // map lhs to rhs for processing
             _tokenMap.insert({ token, symbols });
         }
         else
@@ -254,10 +268,21 @@ void Rules::parseSymbols()
         }
     }
 
+    int count = 0;
+    std::string root;
+    // only one lhs should have no rhs definition
     for (const auto& x : _tokenMap)
     {
-        std::cout << x.first << "=";
-        printVector(x.second);
-        std::cout << std::endl;
+        if (set.count(x.first) == 0)
+        {
+            root = x.first;
+            count++;
+        }
     }
+
+    if (count > 1)
+    {
+        throw std::runtime_error("Multiple root symbols found.");
+    }
+    return root;
 }
