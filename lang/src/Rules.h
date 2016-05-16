@@ -15,14 +15,15 @@ class Rules
 protected:
     std::vector<char> _text;
     std::vector<std::string> _ruleList;
-    std::map<std::string, std::vector<SyntaxNode>> _tokenMap;
+    std::map<std::string, std::vector<std::string>> _tokenMap;
     ParseTree _tree;
     void parseRules();
     std::string parseSymbols();
 public:
     Rules(const std::string& rules);
     static std::vector<char> read_file(const std::string& file);
-    static std::vector<SyntaxNode> Rules::tokenize(const std::string& source);
+    static SyntaxNode::NodeType precedence(const std::string& exp);
+    static SyntaxNode tokenize(const std::string& token, const std::string& equality);
     static std::string& strip_squotes(std::string& str);
     static std::string& strip_dquotes(std::string& str);
     static bool strip_quotes(std::string& str);

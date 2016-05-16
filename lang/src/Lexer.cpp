@@ -1,4 +1,4 @@
-#include "lexer.h"
+#include "Lexer.h"
 
 Lexer::Lexer(const std::string& src, const std::string& rules) : _rules(rules)
 {

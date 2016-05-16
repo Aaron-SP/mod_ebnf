@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <set>
+#include <stack>
 
 std::vector<char> Rules::read_file(const std::string& filePath)
 {
@@ -127,24 +128,50 @@ bool Rules::in_brackets(const char ch, bool quotes, bool& in_brackets, char & br
     return action;
 }
 
-std::vector<SyntaxNode> Rules::tokenize(const std::string& source)
+SyntaxNode::NodeType Rules::precedence(const std::string& exp)
 {
-    std::vector<SyntaxNode> out;
+    SyntaxNode::NodeType highest = SyntaxNode::LEAF;
+    SyntaxNode::NodeType concat = SyntaxNode::CONCATE;
+    SyntaxNode::NodeType alter = SyntaxNode::ALTER;
+    for (const auto& ch : exp)
+    {
+        if (ch == ',')
+        {
+            if (concat > highest)
+            {
+                highest = SyntaxNode::CONCATE;
+            }
+        }
+        else if (ch == '|')
+        {
+            if (alter > highest)
+            {
+                highest = SyntaxNode::ALTER;
+            }
+        }
+    }
+    return highest;
+}
+
+SyntaxNode Rules::tokenize(const std::string& token, const std::string& equality)
+{
     size_t start = 0; size_t end = 0;
-    const size_t size = source.size();
+    const size_t size = equality.size();
     bool quotes = false;
     bool brackets = false;
     bool bracket_action = false;
     char quote_char = 0;
     char bracket_char = 0;
 
-    // We use root to initialize only
-    SyntaxNode::NodeType last_type = SyntaxNode::ROOT;
+    // Stack for resolving binary operators
+    std::stack<SyntaxNode> stack;
+    // Get the highest precedence in this string
+    SyntaxNode::NodeType highest = precedence(equality);
 
     // end points to line after current char
     for (size_t end = 0; end < size; end++)
     {
-        char ch = source[end];
+        char ch = equality[end];
         in_quotes(ch, quotes, quote_char);
         bracket_action = in_brackets(ch, quotes, brackets, bracket_char);
 
@@ -159,8 +186,8 @@ std::vector<SyntaxNode> Rules::tokenize(const std::string& source)
         {
             if (end - start > 0)
             {
-                std::vector<SyntaxNode> again = tokenize(source.substr(start, end - start));
-                out.insert(out.end(), again.begin(), again.end());
+                SyntaxNode again = tokenize(token, equality.substr(start, end - start));
+                stack.push(std::move(again));
                 // Move to after bracket
                 start = end + 1;
             }
@@ -175,29 +202,58 @@ std::vector<SyntaxNode> Rules::tokenize(const std::string& source)
             }
             if (end - start > 0)
             {
-                std::string s = source.substr(start, end - start);
-
+                std::string s = equality.substr(start, end - start);
                 // if it is a string then it is a leaf in the parse tree
-                bool isString = strip_quotes(s);
-                if (ch == '|')
+                strip_quotes(s);
+                SyntaxNode rhs(s, ch);
+                if (stack.size() > 0)
                 {
-                    last_type = SyntaxNode::NodeType::ALTER;
+                    // If we aren't add the end
+                    if (ch == ',' || ch == '|')
+                    {
+                        SyntaxNode root(ch);
+                        SyntaxNode& lhs = stack.top();
+                        if (lhs.sameType(rhs))
+                        {
+                            root.setLeft(lhs);
+                            stack.pop();
+                            root.setRight(rhs);
+                            stack.push(std::move(root));
+                        }
+                        else
+                        {
+                            stack.push(std::move(rhs));
+                        }
+                    }
+                    // We hit the end of the line
+                    else
+                    {
+                        stack.emplace(std::move(rhs));
+                        while (stack.size() > 1)
+                        {
+                            SyntaxNode rhs = std::move(stack.top());
+                            stack.pop();
+                            SyntaxNode lhs = std::move(stack.top());
+                            stack.pop();
+
+                            SyntaxNode root(rhs.highestType(lhs));
+                            root.setRight(rhs);
+                            root.setLeft(lhs);
+                            
+                            // Push combined
+                            stack.push(std::move(root));
+                        }
+                    }
                 }
-                else if (ch == ',')
+                else
                 {
-                    last_type = SyntaxNode::NodeType::CONCATE;
+                    stack.push(std::move(rhs));
                 }
-                else if (last_type == SyntaxNode::ROOT)
-                {
-                    last_type = SyntaxNode::NodeType::EQUALS;
-                }
-                SyntaxNode node(last_type, s, !isString);
-                out.push_back(node);
                 start = end + 1;
             }
         }
     }
-    return out;
+    return std::move(stack.top());
 }
 
 Rules::Rules(const std::string& rules) : _tree("root")
@@ -205,7 +261,7 @@ Rules::Rules(const std::string& rules) : _tree("root")
     _text = Rules::read_file(rules);
     parseRules();
     _tree = ParseTree(parseSymbols());
-    std::cout << _tree.getRoot().getSymbol() << std::endl;
+    std::cout << _tree.getRoot().getSymbol() << " is the root" << std::endl;
 }
 
 void Rules::parseRules()
@@ -256,11 +312,14 @@ std::string Rules::parseSymbols()
             // rhs
             std::string equality = rule.substr(found + 1, rule.size() - found - 1);
             // process rhs
-            std::vector<SyntaxNode> symbols = tokenize(equality);
+            SyntaxNode node = tokenize(token, equality);
+            std::vector<std::string> symbols = node.toVector();
             // Get the SyntaxNode's symbol and put them in the set
-            std::transform(symbols.begin(), symbols.end(), std::inserter(set, set.end()), SyntaxNode::toString);
+            std::copy(symbols.begin(), symbols.end(), std::inserter(set, set.end()));
             // map lhs to rhs for processing
             _tokenMap.insert({ token, symbols });
+
+            std::cout << node.print();
         }
         else
         {
