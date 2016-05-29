@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "ParseTree.h"
+#include "SyntaxNode.h"
 
 class Token
 {
@@ -16,13 +16,11 @@ protected:
     std::vector<char> _text;
     std::vector<std::string> _ruleList;
     std::map<std::string, std::vector<std::string>> _tokenMap;
-    ParseTree _tree;
     void parseRules();
     std::string parseSymbols();
 public:
     Rules(const std::string& rules);
     static std::vector<char> read_file(const std::string& file);
-    static SyntaxNode::NodeType precedence(const std::string& exp);
     static SyntaxNode tokenize(const std::string& token, const std::string& equality);
     static std::string& strip_squotes(std::string& str);
     static std::string& strip_dquotes(std::string& str);

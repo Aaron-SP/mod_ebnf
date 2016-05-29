@@ -1,29 +1,15 @@
-#include "ParseTree.h"
+#include "SyntaxNode.h"
 #include <algorithm>
 #include <iterator>
 
-SyntaxNode::SyntaxNode(char ch) : _type(SyntaxNode::LEAF)
+SyntaxNode::SyntaxNode(NodeType type)
 {
-    if (ch == ',')
-    {
-        _type = SyntaxNode::CONCATE;
-    }
-    else if (ch == '|')
-    {
-        _type = SyntaxNode::ALTER;
-    }
+    _type = type;
 }
 
-SyntaxNode::SyntaxNode(const std::string& symbol, char ch) : _symbol(symbol), _type(SyntaxNode::LEAF)
+SyntaxNode::SyntaxNode(const std::string& symbol) : _symbol(symbol), _type(NodeType::LEAF)
 {
-    if (ch == ',')
-    {
-        _type = SyntaxNode::CONCATE;
-    }
-    else if (ch == '|')
-    {
-        _type = SyntaxNode::ALTER;
-    }
+
 }
 
 void SyntaxNode::setLeft(SyntaxNode& left)
@@ -36,36 +22,19 @@ void SyntaxNode::setRight(SyntaxNode& right)
     _right.reset(new SyntaxNode(std::move(right)));
 }
 
-bool SyntaxNode::isLeaf() const
-{
-    return (_type == SyntaxNode::LEAF);
-}
-
 const std::string& SyntaxNode::getSymbol() const
 {
     return _symbol;
 }
 
-const SyntaxNode::NodeType& SyntaxNode::getType()  const
+SyntaxNode::NodeType SyntaxNode::getType() const
 {
     return _type;
 }
 
-const bool SyntaxNode::sameType(const SyntaxNode& node) const
+void SyntaxNode::setType(NodeType type)
 {
-    return (this->getType() == node.getType());
-}
-
-SyntaxNode::NodeType SyntaxNode::highestType(const SyntaxNode& node) const
-{
-    if (this->getType() >= node.getType())
-    {
-        return this->getType();
-    }
-    else
-    {
-        return node.getType();
-    }
+    _type = type;
 }
 
 std::vector<std::string> SyntaxNode::toVector() const
@@ -99,13 +68,17 @@ std::string SyntaxNode::print() const
     SyntaxNode* right = _right.get();
     if (bleft && bright)
     {
-        if (left->getType() == SyntaxNode::ALTER || left->getType() == SyntaxNode::LEAF)
+        if (left->getType() == NodeType::ALTER || left->getType() == NodeType::LEAF)
         {
-            out += left->print() + "|" + right->print();
+            out += "[" + left->print() + right->print() + "]";
         }
-        else
+        else if (left->getType() == NodeType::CONCAT)
         {
-            out += left->print() + "," + right->print();
+            out += "{" + left->print() + right->print() + "}";
+        }
+        else if (left->getType() == NodeType::COMBINE)
+        {
+            out += "(" + left->print() + right->print() + ")";
         }
     }
 
@@ -114,14 +87,4 @@ std::string SyntaxNode::print() const
         out = this->getSymbol();
     }
     return out;
-}
-
-ParseTree::ParseTree(const std::string& symbol) : _root(' ')
-{
-
-}
-
-const SyntaxNode& ParseTree::getRoot()
-{
-    return _root;
 }

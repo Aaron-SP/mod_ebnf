@@ -128,29 +128,22 @@ bool Rules::in_brackets(const char ch, bool quotes, bool& in_brackets, char & br
     return action;
 }
 
-SyntaxNode::NodeType Rules::precedence(const std::string& exp)
+void flush_stack(std::stack<SyntaxNode>& stack)
 {
-    SyntaxNode::NodeType highest = SyntaxNode::LEAF;
-    SyntaxNode::NodeType concat = SyntaxNode::CONCATE;
-    SyntaxNode::NodeType alter = SyntaxNode::ALTER;
-    for (const auto& ch : exp)
+    while (stack.size() > 1)
     {
-        if (ch == ',')
-        {
-            if (concat > highest)
-            {
-                highest = SyntaxNode::CONCATE;
-            }
-        }
-        else if (ch == '|')
-        {
-            if (alter > highest)
-            {
-                highest = SyntaxNode::ALTER;
-            }
-        }
+        SyntaxNode rhs = std::move(stack.top());
+        stack.pop();
+        SyntaxNode lhs = std::move(stack.top());
+        stack.pop();
+
+        SyntaxNode root(SyntaxNode::COMBINE);
+        root.setRight(rhs);
+        root.setLeft(lhs);
+
+        // Push combined
+        stack.push(std::move(root));
     }
-    return highest;
 }
 
 SyntaxNode Rules::tokenize(const std::string& token, const std::string& equality)
@@ -165,8 +158,6 @@ SyntaxNode Rules::tokenize(const std::string& token, const std::string& equality
 
     // Stack for resolving binary operators
     std::stack<SyntaxNode> stack;
-    // Get the highest precedence in this string
-    SyntaxNode::NodeType highest = precedence(equality);
 
     // end points to line after current char
     for (size_t end = 0; end < size; end++)
@@ -199,50 +190,42 @@ SyntaxNode Rules::tokenize(const std::string& token, const std::string& equality
             if (end == size - 1)
             {
                 end++;
+                // mark ch as end of line
+                ch = '!';
             }
             if (end - start > 0)
             {
                 std::string s = equality.substr(start, end - start);
-                // if it is a string then it is a leaf in the parse tree
+                // Make a node for the input
                 strip_quotes(s);
-                SyntaxNode rhs(s, ch);
+                SyntaxNode rhs(s);
                 if (stack.size() > 0)
                 {
                     // If we aren't add the end
                     if (ch == ',' || ch == '|')
                     {
-                        SyntaxNode root(ch);
+                        SyntaxNode root(SyntaxNode::ALTER);
                         SyntaxNode& lhs = stack.top();
-                        if (lhs.sameType(rhs))
+                        root.setLeft(lhs);
+                        stack.pop();
+                        root.setRight(rhs);
+                        stack.push(std::move(root));
+                        if (ch == ',')
                         {
-                            root.setLeft(lhs);
-                            stack.pop();
-                            root.setRight(rhs);
-                            stack.push(std::move(root));
-                        }
-                        else
-                        {
-                            stack.push(std::move(rhs));
+                            // Recurse the rest of the input
+                            SyntaxNode again = tokenize(token, equality.substr(start, size - start));
+                            again.setType(SyntaxNode::CONCAT);
+                            stack.push(std::move(again));
+                            flush_stack(stack);
+                            // end the loop
+                            end = size - 1;
                         }
                     }
                     // We hit the end of the line
                     else
                     {
-                        stack.emplace(std::move(rhs));
-                        while (stack.size() > 1)
-                        {
-                            SyntaxNode rhs = std::move(stack.top());
-                            stack.pop();
-                            SyntaxNode lhs = std::move(stack.top());
-                            stack.pop();
-
-                            SyntaxNode root(rhs.highestType(lhs));
-                            root.setRight(rhs);
-                            root.setLeft(lhs);
-                            
-                            // Push combined
-                            stack.push(std::move(root));
-                        }
+                        stack.push(std::move(rhs));
+                        flush_stack(stack);
                     }
                 }
                 else
@@ -256,12 +239,11 @@ SyntaxNode Rules::tokenize(const std::string& token, const std::string& equality
     return std::move(stack.top());
 }
 
-Rules::Rules(const std::string& rules) : _tree("root")
+Rules::Rules(const std::string& rules)
 {
     _text = Rules::read_file(rules);
     parseRules();
-    _tree = ParseTree(parseSymbols());
-    std::cout << _tree.getRoot().getSymbol() << " is the root" << std::endl;
+    std::cout << parseSymbols() << " is the root" << std::endl;
 }
 
 void Rules::parseRules()
