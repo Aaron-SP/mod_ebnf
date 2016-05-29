@@ -202,24 +202,28 @@ SyntaxNode Rules::tokenize(const std::string& token, const std::string& equality
                 if (stack.size() > 0)
                 {
                     // If we aren't add the end
-                    if (ch == ',' || ch == '|')
+                    if (ch == '|' || ch == ',')
                     {
-                        SyntaxNode root(SyntaxNode::ALTER);
+                        SyntaxNode root(ch);
                         SyntaxNode& lhs = stack.top();
                         root.setLeft(lhs);
                         stack.pop();
                         root.setRight(rhs);
                         stack.push(std::move(root));
-                        if (ch == ',')
-                        {
-                            // Recurse the rest of the input
-                            SyntaxNode again = tokenize(token, equality.substr(start, size - start));
-                            again.setType(SyntaxNode::CONCAT);
-                            stack.push(std::move(again));
-                            flush_stack(stack);
-                            // end the loop
-                            end = size - 1;
-                        }
+                    }
+                    else if (ch == ',')
+                    {
+                        SyntaxNode root(ch);
+                        SyntaxNode& lhs = stack.top();
+                        root.setLeft(lhs);
+                        stack.pop();
+                        // Recurse the rest of the input
+                        SyntaxNode again = tokenize(token, equality.substr(start, size - start));
+                        root.setRight(rhs);
+                        stack.push(std::move(root));
+                        flush_stack(stack);
+                        // end the loop
+                        end = size - 1;
                     }
                     // We hit the end of the line
                     else
@@ -301,7 +305,7 @@ std::string Rules::parseSymbols()
             // map lhs to rhs for processing
             _tokenMap.insert({ token, symbols });
 
-            std::cout << node.print();
+            std::cout << node.print() << std::endl;
         }
         else
         {

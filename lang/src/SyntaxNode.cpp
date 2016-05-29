@@ -2,9 +2,16 @@
 #include <algorithm>
 #include <iterator>
 
-SyntaxNode::SyntaxNode(NodeType type)
+SyntaxNode::SyntaxNode(char symbol)
 {
-    _type = type;
+    if (symbol == '|')
+    {
+        _type = NodeType::ALTER;
+    }
+    else if (symbol == ',')
+    {
+        _type = NodeType::CONCAT;
+    }
 }
 
 SyntaxNode::SyntaxNode(const std::string& symbol) : _symbol(symbol), _type(NodeType::LEAF)
@@ -70,15 +77,15 @@ std::string SyntaxNode::print() const
     {
         if (left->getType() == NodeType::ALTER || left->getType() == NodeType::LEAF)
         {
-            out += "[" + left->print() + right->print() + "]";
+            out += "[" + left->print() + "|" +right->print() + "]";
         }
         else if (left->getType() == NodeType::CONCAT)
         {
-            out += "{" + left->print() + right->print() + "}";
+            out += "{" + left->print() + "," + right->print() + "}";
         }
         else if (left->getType() == NodeType::COMBINE)
         {
-            out += "(" + left->print() + right->print() + ")";
+            out += "(" + left->print() + "!" + right->print() + ")";
         }
     }
 

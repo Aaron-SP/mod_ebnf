@@ -14,7 +14,7 @@ private:
     std::unique_ptr<SyntaxNode> _right;
     NodeType _type;
 public:
-    SyntaxNode(NodeType type);
+    SyntaxNode(char symbol);
     SyntaxNode(const std::string& symbol);
     SyntaxNode(SyntaxNode&& node) = default;
     SyntaxNode& operator=(SyntaxNode&& node) = default;
