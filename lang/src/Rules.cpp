@@ -138,8 +138,8 @@ void flush_stack(std::stack<SyntaxNode>& stack)
         stack.pop();
 
         SyntaxNode root(SyntaxNode::COMBINE);
-        root.setRight(rhs);
         root.setLeft(lhs);
+        root.setRight(rhs);
 
         // Push combined
         stack.push(std::move(root));
@@ -199,42 +199,43 @@ SyntaxNode Rules::tokenize(const std::string& token, const std::string& equality
                 // Make a node for the input
                 strip_quotes(s);
                 SyntaxNode rhs(s);
-                if (stack.size() > 0)
+                // If we aren't add the end
+                if (ch == '|' || ch == ',')
                 {
-                    // If we aren't add the end
-                    if (ch == '|' || ch == ',')
+                    SyntaxNode root(SyntaxNode::ALTER);
+                    if (stack.size() > 0)
                     {
-                        SyntaxNode root(ch);
                         SyntaxNode& lhs = stack.top();
                         root.setLeft(lhs);
                         stack.pop();
                         root.setRight(rhs);
                         stack.push(std::move(root));
                     }
-                    else if (ch == ',')
+                    else
                     {
-                        SyntaxNode root(ch);
+                        stack.push(std::move(rhs));
+                    }
+                    if (ch == ',')
+                    {
+                        SyntaxNode root2(SyntaxNode::CONCAT);
                         SyntaxNode& lhs = stack.top();
-                        root.setLeft(lhs);
+                        root2.setLeft(lhs);
                         stack.pop();
-                        // Recurse the rest of the input
+                        // Recurse the rest of the input; skip this character
+                        start = end + 1;
                         SyntaxNode again = tokenize(token, equality.substr(start, size - start));
-                        root.setRight(rhs);
-                        stack.push(std::move(root));
+                        root2.setRight(again);
+                        stack.push(std::move(root2));
                         flush_stack(stack);
                         // end the loop
                         end = size - 1;
                     }
-                    // We hit the end of the line
-                    else
-                    {
-                        stack.push(std::move(rhs));
-                        flush_stack(stack);
-                    }
                 }
+                // We hit the end of the line
                 else
                 {
                     stack.push(std::move(rhs));
+                    flush_stack(stack);
                 }
                 start = end + 1;
             }
