@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <stack>
 #include "SyntaxNode.h"
 
 class Token
@@ -22,6 +23,9 @@ public:
     Rules(const std::string& rules);
     static std::vector<char> read_file(const std::string& file);
     static SyntaxNode tokenize(const std::string& token, const std::string& equality);
+    static SyntaxNode reduce_node(std::stack<SyntaxNode>& stack, SyntaxNode::NodeType type);
+    static void add_node(std::stack<SyntaxNode>& stack, SyntaxNode& rhs, SyntaxNode::NodeType type);
+    static void flush_stack(std::stack<SyntaxNode>& stack);
     static std::string& strip_squotes(std::string& str);
     static std::string& strip_dquotes(std::string& str);
     static bool strip_quotes(std::string& str);

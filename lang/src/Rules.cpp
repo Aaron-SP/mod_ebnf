@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <stdexcept>
 #include <set>
-#include <stack>
 
 std::vector<char> Rules::read_file(const std::string& filePath)
 {
@@ -128,21 +127,40 @@ bool Rules::in_brackets(const char ch, bool quotes, bool& in_brackets, char & br
     return action;
 }
 
-void flush_stack(std::stack<SyntaxNode>& stack)
+SyntaxNode Rules::reduce_node(std::stack<SyntaxNode>& stack, SyntaxNode::NodeType type)
+{
+    SyntaxNode root(type);
+    SyntaxNode& lhs = stack.top();
+    root.setLeft(lhs);
+    stack.pop();
+
+    return root;
+}
+
+void Rules::add_node(std::stack<SyntaxNode>& stack, SyntaxNode& rhs, SyntaxNode::NodeType type)
+{
+    if (stack.size() > 0)
+    {
+        SyntaxNode root = reduce_node(stack, type);
+        root.setRight(rhs);
+        stack.push(std::move(root));
+    }
+    else
+    {
+        stack.push(std::move(rhs));
+    }
+}
+
+void Rules::flush_stack(std::stack<SyntaxNode>& stack)
 {
     while (stack.size() > 1)
     {
+        // rhs first
         SyntaxNode rhs = std::move(stack.top());
         stack.pop();
-        SyntaxNode lhs = std::move(stack.top());
-        stack.pop();
 
-        SyntaxNode root(SyntaxNode::COMBINE);
-        root.setLeft(lhs);
-        root.setRight(rhs);
-
-        // Push combined
-        stack.push(std::move(root));
+        //lhs next
+        add_node(stack, rhs, SyntaxNode::COMBINE);
     }
 }
 
@@ -153,6 +171,8 @@ SyntaxNode Rules::tokenize(const std::string& token, const std::string& equality
     bool quotes = false;
     bool brackets = false;
     bool bracket_action = false;
+    bool recurse = false;
+    bool cache = false;
     char quote_char = 0;
     char bracket_char = 0;
 
@@ -175,70 +195,64 @@ SyntaxNode Rules::tokenize(const std::string& token, const std::string& equality
         // Escape bracket
         else if (bracket_action && !brackets)
         {
-            if (end - start > 0)
+            recurse = true;
+        }
+
+        if (((ch == '|' || ch == ',' || recurse || cache) && !quotes && !brackets) || end == size - 1)
+        {
+            // Cache allows node reuse in operator
+            if (recurse)
             {
                 SyntaxNode again = tokenize(token, equality.substr(start, end - start));
                 stack.push(std::move(again));
-                // Move to after bracket
-                start = end + 1;
+                recurse = false;
+                cache = true;
             }
-        }
-
-        if (((ch == '|' || ch == ',') && !quotes && !brackets) || end == size - 1)
-        {
-            // Get the correct length if reach the end
+            // If end of line get the correct length and mark EOL
             if (end == size - 1)
             {
                 end++;
-                // mark ch as end of line
                 ch = '!';
-            }
-            if (end - start > 0)
-            {
-                std::string s = equality.substr(start, end - start);
-                // Make a node for the input
-                strip_quotes(s);
-                SyntaxNode rhs(s);
-                // If we aren't add the end
-                if (ch == '|' || ch == ',')
+                if (quotes || brackets)
                 {
-                    SyntaxNode root(SyntaxNode::ALTER);
-                    if (stack.size() > 0)
-                    {
-                        SyntaxNode& lhs = stack.top();
-                        root.setLeft(lhs);
-                        stack.pop();
-                        root.setRight(rhs);
-                        stack.push(std::move(root));
-                    }
-                    else
-                    {
-                        stack.push(std::move(rhs));
-                    }
-                    if (ch == ',')
-                    {
-                        SyntaxNode root2(SyntaxNode::CONCAT);
-                        SyntaxNode& lhs = stack.top();
-                        root2.setLeft(lhs);
-                        stack.pop();
-                        // Recurse the rest of the input; skip this character
-                        start = end + 1;
-                        SyntaxNode again = tokenize(token, equality.substr(start, size - start));
-                        root2.setRight(again);
-                        stack.push(std::move(root2));
-                        flush_stack(stack);
-                        // end the loop
-                        end = size - 1;
-                    }
+                    throw std::runtime_error("Found EOL before end of quote/brace");
                 }
-                // We hit the end of the line
+            }
+            // Process operator
+            if(ch == '|' || ch == ',' || ch == '!')
+            {
+                if (!cache)
+                {
+                    // Make a node for the input
+                    std::string s = equality.substr(start, end - start);
+                    strip_quotes(s);
+                    SyntaxNode rhs(s);
+                    add_node(stack, rhs, SyntaxNode::ALTER);
+                }
                 else
                 {
-                    stack.push(std::move(rhs));
+                    SyntaxNode rhs = std::move(stack.top());
+                    stack.pop();
+                    add_node(stack, rhs, SyntaxNode::ALTER);
+                    cache = false;
+                }
+                if (ch == ',')
+                {
+                    // Recurse the rest of the input; skip this character
+                    start = end + 1;
+                    SyntaxNode again = tokenize(token, equality.substr(start, size - start));
+                    add_node(stack, again, SyntaxNode::CONCAT);
+                    flush_stack(stack);
+
+                    // end the loop
+                    end = size - 1;
+                }
+                else if (ch == '!')
+                {
                     flush_stack(stack);
                 }
-                start = end + 1;
             }
+            start = end + 1;
         }
     }
     return std::move(stack.top());
