@@ -4,3 +4,4 @@ lang.VC.VC.opendb
 .vs/*
 lang/bin
 lang/vs
+lang/test

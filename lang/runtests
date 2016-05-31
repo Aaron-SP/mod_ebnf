@@ -1,0 +1,3 @@
+#!/bin/bash
+g++ -o test -std=c++11 src/test.cpp src/Lexer.cpp src/Rules.cpp src/SyntaxNode.cpp src/Parse.cpp -Isrc -lmingw32 -static
+./test.exe

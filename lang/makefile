@@ -1,1 +1,0 @@
-g++ -std=c++11 src/main.cpp src/Lexer.cpp src/Rules.cpp src/SyntaxNode.cpp -Isrc -lmingw32 -static

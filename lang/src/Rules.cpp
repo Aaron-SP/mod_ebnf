@@ -4,14 +4,26 @@
 
 #include <iostream>
 #include <iterator>
+#include <algorithm>
 #include <stdexcept>
 #include <set>
 
-Rules::Rules(const std::string& rules)
+Rules::Rules(const std::string& filePath)
 {
-    _text = parse::read_file(rules);
+    _text = parse::read_file(filePath);
     parseRules();
-    std::cout << parseSymbols() << " is the root" << std::endl;
+    _root = parseSymbols();
+}
+
+Rules::Rules(const std::vector<char>& rules) : _text(rules)
+{
+    parseRules();
+    _root = parseSymbols();
+}
+
+std::string Rules::getRoot() const
+{
+    return _root;
 }
 
 void Rules::parseRules()

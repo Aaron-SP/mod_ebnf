@@ -1,5 +1,6 @@
 #include "Parse.h"
 #include <fstream>
+#include <stdexcept>
 #include <algorithm>
 
 std::vector<char> parse::read_file(const std::string& filePath)
