@@ -100,6 +100,11 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
         // Enter bracket
         if (bracket_action && brackets)
         {
+            // Check if there is text before a bracket
+            if (end - start > 0)
+            {
+                throw std::runtime_error("Braces must be fully delimited, found text before start brace");
+            }
             // Skip everything to after bracket
             start = end + 1;
         }
@@ -134,6 +139,11 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
             {
                 if (!cache)
                 {
+                    // Check for empty symbol
+                    if (end - start <= 0)
+                    {
+                        throw std::runtime_error("Empty symbol found while constructing rule");
+                    }
                     // Make a node for the input
                     std::string s = equality.substr(start, end - start);
                     parse::strip_quotes(s);

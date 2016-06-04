@@ -28,13 +28,13 @@ std::string Rules::getRoot() const
 
 void Rules::parseRules()
 {
-    const size_t size = _text.size();
     // white space list
     std::vector<char> ws{ 9, 10, 13, 32 };
     std::string rule = std::string();
     char quote_char = 0;
     bool quotes = false;
 
+    const size_t size = _text.size();
     for (size_t i = 0; i < size; i++)
     {
         const char ch = _text[i];
@@ -58,6 +58,10 @@ void Rules::parseRules()
     {
         throw std::runtime_error("Quotation '/\" mismatch. Check rules input file");
     }
+    if (_ruleList.size() == 0)
+    {
+        throw std::runtime_error("Could not find any rules, did you miss a semi-colon (;)?");
+    }
 }
 
 std::string Rules::parseSymbols()
@@ -80,12 +84,10 @@ std::string Rules::parseSymbols()
             std::copy(symbols.begin(), symbols.end(), std::inserter(set, set.end()));
             // map lhs to rhs for processing
             _tokenMap.insert({ token, symbols });
-
-            std::cout << node.print() << std::endl;
         }
         else
         {
-            throw std::runtime_error("No equality found in rule.");
+            throw std::runtime_error("No equality found in rule");
         }
     }
 
@@ -103,7 +105,11 @@ std::string Rules::parseSymbols()
 
     if (count > 1)
     {
-        throw std::runtime_error("Multiple root symbols found.");
+        throw std::runtime_error("Multiple root symbols found");
+    }
+    else if (count == 0)
+    {
+        throw std::runtime_error("No root symbol found");
     }
     return root;
 }
