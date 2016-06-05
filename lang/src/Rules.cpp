@@ -1,6 +1,5 @@
 #include "Rules.h"
 #include "Parse.h"
-#include "SyntaxNode.h"
 
 #include <iostream>
 #include <iterator>
@@ -83,7 +82,7 @@ std::string Rules::parseSymbols()
             // Get the SyntaxNode's symbol and put them in the set
             std::copy(symbols.begin(), symbols.end(), std::inserter(set, set.end()));
             // map lhs to rhs for processing
-            _tokenMap.insert({ token, symbols });
+            _tokenMap.insert(std::pair<std::string, SyntaxNode>(token, std::move(node)));
         }
         else
         {
@@ -112,4 +111,17 @@ std::string Rules::parseSymbols()
         throw std::runtime_error("No root symbol found");
     }
     return root;
+}
+
+bool Rules::isValid(std::string token, std::string input)
+{
+    auto iter = _tokenMap.find(token);
+    if (iter != _tokenMap.end())
+    {
+        return iter->second.matches(input);
+    }
+    else
+    {
+        throw std::runtime_error("Could not located token in token map");
+    }
 }

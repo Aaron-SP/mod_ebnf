@@ -1,7 +1,21 @@
 #include "Lexer.h"
 #include <iostream>
 
-void assert(const std::string lhs, const std::string rhs)
+std::string bool_s(const bool& b)
+{
+    if (b == true)
+    {
+        return "true";
+    }
+    return "false";
+}
+
+std::string string_s(const std::string& s)
+{
+    return s;
+}
+
+template <class T> void assert(const T& lhs, const T& rhs, std::string(*f)(const T&))
 {
     if (lhs == rhs)
     {
@@ -9,7 +23,7 @@ void assert(const std::string lhs, const std::string rhs)
     }
     else
     {
-        throw std::runtime_error("Assert String Failed: '" + lhs + "' is not equal to '" + rhs + "'");
+        throw std::runtime_error("Assert String Failed: '" + f(lhs) + "' is not equal to '" + f(rhs) + "'");
     }
 }
 
@@ -33,10 +47,17 @@ void assert_throw(void(*func)(const std::string&), std::string arg, std::string 
     }
 }
 
-void make_rule(const std::string & rule)
+void make_rule(const std::string& rule)
 {
     std::vector<char> v(rule.begin(), rule.end());
     Rules rules(v);
+}
+
+void rule_isValid(const std::string& rule)
+{
+    std::vector<char> v(rule.begin(), rule.end());
+    Rules rules(v);
+    rules.isValid("pie", "test");
 }
 
 int main(int argc, char** argv)
@@ -48,7 +69,7 @@ int main(int argc, char** argv)
             std::string rule = "identifier = letter , { letter | digit | \"_\" };";
             std::vector<char> v(rule.begin(), rule.end());
             Rules rules(v);
-            assert("identifier", rules.getRoot());
+            assert<std::string>("identifier", rules.getRoot(), string_s);
         }
         // Test no closing quote
         {
@@ -91,6 +112,22 @@ int main(int argc, char** argv)
             std::string rule = "identifier = identifier | letter , test { letter | digit | \"_\";";
             std::string error = "Braces must be fully delimited, found text before start brace";
             assert_throw(make_rule, rule, error);
+        }
+        // Test matches
+        {
+            std::string rule = "letter = \"A\" | \"B\" | \"C\" | \"D\";";
+            std::vector<char> v(rule.begin(), rule.end());
+            Rules rules(v);
+            assert<bool>(true, rules.isValid("letter", "A"), bool_s);
+            assert<bool>(true, rules.isValid("letter", "ABCDABDCADCBA"), bool_s);
+            assert<bool>(false, rules.isValid("letter", "Q"), bool_s);
+            assert<bool>(false, rules.isValid("letter", "ABCDABDCADCBAQ"), bool_s);
+        }
+        // Test invalid token exception
+        {
+            std::string rule = "letter = \"A\" | \"B\" | \"C\" | \"D\";";
+            std::string error = "Could not located token in token map";
+            assert_throw(rule_isValid, rule, error);
         }
     }
     catch (std::exception& e)

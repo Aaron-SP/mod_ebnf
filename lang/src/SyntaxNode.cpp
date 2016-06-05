@@ -183,16 +183,16 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
 std::vector<std::string> SyntaxNode::toVector() const
 {
     std::vector<std::string> out;
-    bool left = _left.get() != nullptr;
-    bool right = _right.get() != nullptr;
+    SyntaxNode* left = _left.get();
+    SyntaxNode* right = _right.get();
     if (left)
     {
-        std::vector<std::string> rec = _left.get()->toVector();
+        std::vector<std::string> rec = left->toVector();
         std::move(rec.begin(), rec.end(), std::back_inserter(out));
     }
     if (right)
     {
-        std::vector<std::string> rec = _right.get()->toVector();
+        std::vector<std::string> rec = right->toVector();
         std::move(rec.begin(), rec.end(), std::back_inserter(out));
     }
     if (!left && !right)
@@ -205,11 +205,9 @@ std::vector<std::string> SyntaxNode::toVector() const
 std::string SyntaxNode::print() const
 {
     std::string out;
-    bool bleft = _left.get() != nullptr;
-    bool bright = _right.get() != nullptr;
     SyntaxNode* left = _left.get();
     SyntaxNode* right = _right.get();
-    if (bleft && bright)
+    if (left && right)
     {
         if (_type == NodeType::ALTER)
         {
@@ -225,9 +223,35 @@ std::string SyntaxNode::print() const
         }
     }
 
-    if (!bleft && !bright)
+    if (!left && !right)
     {
         out = this->getSymbol();
     }
     return out;
+}
+
+bool SyntaxNode::matches(char ch)
+{
+    SyntaxNode* left = _left.get();
+    SyntaxNode* right = _right.get();
+    if (!left && !right)
+    {
+        return _symbol[0] == ch;
+    }
+    else
+    {
+        return left->matches(ch) || right->matches(ch);
+    }
+}
+
+bool SyntaxNode::matches(const std::string& match)
+{
+    for (auto& ch : match)
+    {
+        if (!matches(ch))
+        {
+            return false;
+        }
+    }
+    return true;
 }

@@ -30,6 +30,8 @@ public:
     const std::string& getSymbol() const;
     std::vector<std::string> toVector() const;
     std::string print() const;
+    bool matches(char ch);
+    bool matches(const std::string& match);
 };
 
 #endif
