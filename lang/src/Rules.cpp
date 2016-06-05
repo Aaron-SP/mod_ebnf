@@ -118,7 +118,8 @@ bool Rules::isValid(std::string token, std::string input)
     auto iter = _tokenMap.find(token);
     if (iter != _tokenMap.end())
     {
-        return iter->second.matches(input);
+        size_t start = 0;
+        return iter->second.matches(input, start);
     }
     else
     {

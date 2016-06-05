@@ -113,7 +113,7 @@ int main(int argc, char** argv)
             std::string error = "Braces must be fully delimited, found text before start brace";
             assert_throw(make_rule, rule, error);
         }
-        // Test matches
+        // Test alternation matches
         {
             std::string rule = "letter = \"A\" | \"B\" | \"C\" | \"D\";";
             std::vector<char> v(rule.begin(), rule.end());
@@ -128,6 +128,16 @@ int main(int argc, char** argv)
             std::string rule = "letter = \"A\" | \"B\" | \"C\" | \"D\";";
             std::string error = "Could not located token in token map";
             assert_throw(rule_isValid, rule, error);
+        }
+        // Test concatenation matches
+        {
+            std::string rule = "letter = \"A\" | \"B\" , \"C\" | \"D\";";
+            std::vector<char> v(rule.begin(), rule.end());
+            Rules rules(v);
+            assert<bool>(true, rules.isValid("letter", "AC"), bool_s);
+            assert<bool>(true, rules.isValid("letter", "AAAABACDC"), bool_s);
+            assert<bool>(false, rules.isValid("letter", "CB"), bool_s);
+            assert<bool>(false, rules.isValid("letter", "CD"), bool_s);
         }
     }
     catch (std::exception& e)

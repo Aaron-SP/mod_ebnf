@@ -62,19 +62,6 @@ void SyntaxNode::add_node(std::stack<SyntaxNode>& stack, SyntaxNode& rhs, Syntax
     }
 }
 
-void SyntaxNode::flush_stack(std::stack<SyntaxNode>& stack)
-{
-    while (stack.size() > 1)
-    {
-        // rhs first
-        SyntaxNode rhs = std::move(stack.top());
-        stack.pop();
-
-        //lhs next
-        add_node(stack, rhs, SyntaxNode::COMBINE);
-    }
-}
-
 SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equality)
 {
     size_t start = 0; size_t end = 0;
@@ -164,18 +151,17 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
                     start = end + 1;
                     SyntaxNode again = tokenize(token, equality.substr(start, size - start));
                     add_node(stack, again, SyntaxNode::CONCAT);
-                    flush_stack(stack);
 
                     // end the loop
                     end = size - 1;
                 }
-                else if (ch == '!')
-                {
-                    flush_stack(stack);
-                }
             }
             start = end + 1;
         }
+    }
+    if (stack.size() != 1)
+    {
+        throw std::runtime_error("Stack is in an indeterminant state");
     }
     return std::move(stack.top());
 }
@@ -195,7 +181,7 @@ std::vector<std::string> SyntaxNode::toVector() const
         std::vector<std::string> rec = right->toVector();
         std::move(rec.begin(), rec.end(), std::back_inserter(out));
     }
-    if (!left && !right)
+    if (_type == NodeType::LEAF)
     {
         out.emplace_back(this->getSymbol());
     }
@@ -217,41 +203,63 @@ std::string SyntaxNode::print() const
         {
             out += "{" + left->print() + "," + right->print() + "}";
         }
-        else if (_type == NodeType::COMBINE)
-        {
-            out += "(" + left->print() + "!" + right->print() + ")";
-        }
     }
 
-    if (!left && !right)
+    if (_type == NodeType::LEAF)
     {
         out = this->getSymbol();
     }
     return out;
 }
 
-bool SyntaxNode::matches(char ch)
+bool SyntaxNode::matches(const std::string& match, size_t& position)
 {
     SyntaxNode* left = _left.get();
     SyntaxNode* right = _right.get();
-    if (!left && !right)
-    {
-        return _symbol[0] == ch;
-    }
-    else
-    {
-        return left->matches(ch) || right->matches(ch);
-    }
-}
+    const size_t size = match.size();
+    const size_t start = position;
 
-bool SyntaxNode::matches(const std::string& match)
-{
-    for (auto& ch : match)
+    // If we reached the end
+    if (start == size)
     {
-        if (!matches(ch))
+        return false;
+    }
+    else if (_type == NodeType::LEAF)
+    {
+        for (int i = position; i < size; i++)
+        {
+            if (_symbol[0] != match[i])
+            {
+                break;
+            }
+            position++;
+        }
+        return position > start;
+    }
+    else if (_type == NodeType::ALTER)
+    {
+        bool state = true;
+        // Loop on characters
+        while (state)
+        {
+            state = left->matches(match, position) || right->matches(match, position);
+        }
+        // Did we make it to the end?
+        return position == size;
+    }
+    else if (_type == NodeType::CONCAT)
+    {
+        bool state = true;
+        // Loop on characters
+        while (state = left->matches(match, position)) {}
+        // If found no matches 
+        if (position == start)
         {
             return false;
         }
+        // Loop on characters
+        while (state = right->matches(match, position)) {}
+        // Did we make it to the end?
+        return position == size;
     }
-    return true;
 }

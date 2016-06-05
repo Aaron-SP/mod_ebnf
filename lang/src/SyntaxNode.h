@@ -8,7 +8,7 @@
 class SyntaxNode
 {
 public:
-    enum NodeType {LEAF, ALTER, CONCAT, COMBINE};
+    enum NodeType {LEAF, ALTER, CONCAT};
 private:
     std::string _symbol;
     std::unique_ptr<SyntaxNode> _left;
@@ -17,7 +17,6 @@ private:
 public:
     static SyntaxNode reduce_node(std::stack<SyntaxNode>& stack, SyntaxNode::NodeType type);
     static void add_node(std::stack<SyntaxNode>& stack, SyntaxNode& rhs, SyntaxNode::NodeType type);
-    static void flush_stack(std::stack<SyntaxNode>& stack);
     static SyntaxNode tokenize(const std::string& token, const std::string& equality);
     SyntaxNode(NodeType type);
     SyntaxNode(const std::string& symbol);
@@ -30,8 +29,7 @@ public:
     const std::string& getSymbol() const;
     std::vector<std::string> toVector() const;
     std::string print() const;
-    bool matches(char ch);
-    bool matches(const std::string& match);
+    bool matches(const std::string& match, size_t& position);
 };
 
 #endif
