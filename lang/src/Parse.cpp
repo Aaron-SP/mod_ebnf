@@ -100,19 +100,33 @@ bool parse::in_quotes(const char ch, bool& quotes, char& quote_char)
     return action;
 }
 
-bool parse::in_brackets(const char ch, bool quotes, bool& in_brackets, char & bracket_char)
+bool parse::bracket(const char ch)
+{
+    return (ch == '{' ||
+        ch == '[' ||
+        ch == '(');
+}
+
+bool parse::end_bracket(const char ch, const char bracket_char)
+{
+    return (ch == '}' && bracket_char == '{') ||
+        (ch == ']' && bracket_char == '[') ||
+        (ch == ')' && bracket_char == '(');
+}
+
+bool parse::in_brackets(const char ch, const bool quotes, bool& in_brackets, char & bracket_char)
 {
     bool action = false;
     if (!quotes)
     {
-        if ((ch == '{' || ch == '[') && !in_brackets)
+        if (!in_brackets && parse::bracket(ch))
         {
             // turn on brackets
             in_brackets = true;
             bracket_char = ch;
             action = true;
         }
-        else if ((ch == '}' || ch == ']') && in_brackets && bracket_char == '{')
+        else if (in_brackets && parse::end_bracket(ch, bracket_char))
         {
             // turn off brackets
             in_brackets = false;

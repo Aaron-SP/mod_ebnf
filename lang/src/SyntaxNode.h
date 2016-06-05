@@ -14,6 +14,7 @@ private:
     std::unique_ptr<SyntaxNode> _left;
     std::unique_ptr<SyntaxNode> _right;
     NodeType _type;
+    bool _repeat;
 public:
     static SyntaxNode reduce_node(std::stack<SyntaxNode>& stack, SyntaxNode::NodeType type);
     static void add_node(std::stack<SyntaxNode>& stack, SyntaxNode& rhs, SyntaxNode::NodeType type);
@@ -28,6 +29,8 @@ public:
     SyntaxNode* getRight() const { return _right.get(); }
     void setLeft(SyntaxNode& next);
     void setRight(SyntaxNode& next);
+    bool getRepeat() const { return _repeat; }
+    void setRepeat(bool repeat);
     const std::string& getSymbol() const { return _symbol; };
     std::vector<std::string> toVector() const;
     std::string print() const;

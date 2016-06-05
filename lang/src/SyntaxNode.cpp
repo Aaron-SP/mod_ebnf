@@ -3,15 +3,9 @@
 #include <algorithm>
 #include <iterator>
 
-SyntaxNode::SyntaxNode(NodeType type)
-{
-    _type = type;
-}
+SyntaxNode::SyntaxNode(NodeType type) : _type(type), _repeat(false) {}
 
-SyntaxNode::SyntaxNode(const std::string& symbol) : _symbol(symbol), _type(NodeType::LEAF)
-{
-
-}
+SyntaxNode::SyntaxNode(const std::string& symbol) : _symbol(symbol), _type(NodeType::LEAF), _repeat(false) {}
 
 void SyntaxNode::setLeft(SyntaxNode& left)
 {
@@ -58,7 +52,7 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
     bool cache = false;
     char quote_char = 0;
     char bracket_char = 0;
-
+    char last_bracket = 0;
     // Stack for resolving binary operators
     std::stack<SyntaxNode> stack;
 
@@ -72,6 +66,7 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
         // Enter bracket
         if (bracket_action && brackets)
         {
+            last_bracket = bracket_char;
             // Check if there is text before a bracket
             if (end - start > 0)
             {
@@ -92,6 +87,10 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
             if (recurse)
             {
                 SyntaxNode again = tokenize(token, equality.substr(start, end - start));
+                if (last_bracket == '{')
+                {
+                    again.setRepeat(true);
+                }
                 stack.push(std::move(again));
                 recurse = false;
                 cache = true;
@@ -195,4 +194,18 @@ std::string SyntaxNode::print() const
         out = this->getSymbol();
     }
     return out;
+}
+
+void SyntaxNode::setRepeat(bool repeat)
+{
+    SyntaxNode* left = _left.get();
+    SyntaxNode* right = _right.get();
+    // Set here
+    _repeat = repeat;
+    if (left && right)
+    {
+        // Set children
+        left->setRepeat(repeat);
+        right->setRepeat(repeat);
+    }
 }

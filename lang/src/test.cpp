@@ -119,9 +119,10 @@ int main(int argc, char** argv)
             std::vector<char> v(rule.begin(), rule.end());
             Rules rules(v);
             assert<bool>(true, rules.validate("letter", "A"), bool_s);
-            assert<bool>(true, rules.validate("letter", "ABCDABDCADCBA"), bool_s);
+            assert<bool>(true, rules.validate("letter", "B"), bool_s);
             assert<bool>(false, rules.validate("letter", "Q"), bool_s);
-            assert<bool>(false, rules.validate("letter", "ABCDABDCADCBAQ"), bool_s);
+            assert<bool>(false, rules.validate("letter", "Z"), bool_s);
+            assert<bool>(false, rules.validate("letter", "AB"), bool_s);
         }
         // Test invalid token exception
         {
@@ -135,9 +136,10 @@ int main(int argc, char** argv)
             std::vector<char> v(rule.begin(), rule.end());
             Rules rules(v);
             assert<bool>(true, rules.validate("letter", "AC"), bool_s);
-            assert<bool>(true, rules.validate("letter", "AAAABACDC"), bool_s);
+            assert<bool>(true, rules.validate("letter", "AD"), bool_s);
             assert<bool>(false, rules.validate("letter", "CB"), bool_s);
             assert<bool>(false, rules.validate("letter", "CD"), bool_s);
+            assert<bool>(false, rules.validate("letter", "AAD"), bool_s);
         }
         // Test multi rule matches
         {
@@ -145,9 +147,34 @@ int main(int argc, char** argv)
             std::vector<char> v(rule.begin(), rule.end());
             Rules rules(v);
             assert<std::string>("word", rules.getRoot(), string_s);
-            assert<bool>(true, rules.validate("word", "ABCD0123"), bool_s);
+            assert<bool>(true, rules.validate("word", "A1"), bool_s);
             assert<bool>(false, rules.validate("word", "ABCD"), bool_s);
             assert<bool>(false, rules.validate("word", "0123"), bool_s);
+            assert<bool>(false, rules.validate("word", "AA0"), bool_s);
+        }
+        // Test repeat alternation
+        {
+            std::string rule = "letter = {\"A\" | \"B\" | \"C\" | \"D\"};";
+            std::vector<char> v(rule.begin(), rule.end());
+            Rules rules(v);
+            assert<bool>(true, rules.validate("letter", "AAAABBBBCCCCDDD"), bool_s);
+        }
+        // Test repeat concatenation
+        {
+            std::string rule = "letter = {\"A\" | \"B\"} , {\"C\" | \"D\"};";
+            std::vector<char> v(rule.begin(), rule.end());
+            Rules rules(v);
+            assert<bool>(true, rules.validate("letter", "AAAABBBBCCCCDDD"), bool_s);
+            assert<bool>(false, rules.validate("letter", "AAAABBBBCCCCDDDA"), bool_s);
+        }
+        // Test advanced repeat concatenation
+        {
+            std::string rule = "letter = {(\"A\" | \"B\") , (\"C\" | \"D\")};";
+            std::vector<char> v(rule.begin(), rule.end());
+            Rules rules(v);
+            assert<bool>(true, rules.validate("letter", "ABCDABCDABCD"), bool_s);
+            assert<bool>(true, rules.validate("letter", "ABCADBCDA"), bool_s);
+            assert<bool>(true, rules.validate("letter", "ABABABCDCDCD"), bool_s);
         }
     }
     catch (std::exception& e)

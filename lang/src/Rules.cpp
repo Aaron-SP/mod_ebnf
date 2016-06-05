@@ -118,7 +118,8 @@ bool Rules::validate(const std::string& token, const std::string& input, size_t&
     auto iter = _tokenMap.find(token);
     if (iter != _tokenMap.end())
     {
-        return matches(iter->second, input, position);
+        matches(iter->second, input, position);
+        return input.size() == position;
     }
     else
     {
@@ -140,6 +141,7 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
     const size_t start = position;
     const SyntaxNode::NodeType type = node.getType();
     const std::string& symbol = node.getSymbol();
+    const bool repeat = node.getRepeat();
 
     // If we reached the end
     if (start == size)
@@ -148,24 +150,34 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
     }
     else if (type == SyntaxNode::LEAF)
     {
-        for (int i = position; i < size; i++)
+        if (symbol.size() == 1)
         {
-            if (symbol.size() == 1)
+            if (repeat)
             {
-                if (symbol[0] != match[i])
+                for (int i = position; i < size; i++)
                 {
-                    break;
+                    if (symbol[0] != match[i])
+                    {
+                        break;
+                    }
+                    position++;
                 }
-                position++;
-            }
-            else if (symbol.size() > 1)
-            {
-                return validate(symbol, match, position);
             }
             else
             {
-                throw std::runtime_error("Symbol has zero size, invalid state occured");
+                if (symbol[0] == match[position])
+                {
+                    position++;
+                }
             }
+        }
+        else if (symbol.size() > 1)
+        {
+            return validate(symbol, match, position);
+        }
+        else
+        {
+            throw std::runtime_error("Symbol has zero size, invalid state occured");
         }
         return position > start;
     }
@@ -173,45 +185,83 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
     {
         bool state;
         // Loop on characters
-        do
+        if (repeat)
         {
-            state = false;
-            if (left)
+            do
             {
-                while (matches(*left, match, position))
+                state = false;
+                if (left)
                 {
-                    state = true;
-                };
-            }
-            if (right)
+                    while (matches(*left, match, position))
+                    {
+                        state = true;
+                    };
+                }
+                if (right)
+                {
+                    while (matches(*right, match, position))
+                    {
+                        state = true;
+                    };
+                }
+            } while (state);
+        }
+        else
+        {
+            if (matches(*left, match, position))
             {
-                while (matches(*right, match, position))
-                {
-                    state = true;
-                };
+                return position > start;
             }
-        } while (state);
+            if (matches(*right, match, position))
+            {
+                return position > start;
+            }
+        }
         // Did we make it to the end?
-        return position == size;
+        return position > start;
     }
     else if (type == SyntaxNode::CONCAT)
     {
-        bool state = true;
-        if (left)
+        bool lState;
+        bool rState;
+        if (repeat)
         {
-            while (state = matches(*left, match, position)) {}
+            do
+            {
+                lState = rState = false;
+                if (left)
+                {
+                    while (matches(*left, match, position)) 
+                    {
+                        lState = true;
+                    }
+                }
+                // If found no matches or found all matches
+                if (position == start || position == size)
+                {
+                    return false;
+                }
+                if (right)
+                {
+                    while (matches(*right, match, position)) 
+                    {
+                        rState = true;
+                    }
+                }
+                // Did we make it to the end?
+            } while (lState && rState);
         }
-        // If found no matches or found all matches
-        if (position == start || position == size)
+        else
         {
-            return false;
+            matches(*left, match, position);
+            // If found no matches or found all matches
+            if (position == start || position == size)
+            {
+                return false;
+            }
+            matches(*right, match, position);
         }
-        if (right)
-        {
-            while (state = matches(*right, match, position)) {}
-        }
-        // Did we make it to the end?
-        return position == size;
+        return position > start;
     }
     return false;
 }
