@@ -53,11 +53,11 @@ void make_rule(const std::string& rule)
     Rules rules(v);
 }
 
-void rule_isValid(const std::string& rule)
+void rule_validate(const std::string& rule)
 {
     std::vector<char> v(rule.begin(), rule.end());
     Rules rules(v);
-    rules.isValid("pie", "test");
+    rules.validate("pie", "test");
 }
 
 int main(int argc, char** argv)
@@ -118,26 +118,36 @@ int main(int argc, char** argv)
             std::string rule = "letter = \"A\" | \"B\" | \"C\" | \"D\";";
             std::vector<char> v(rule.begin(), rule.end());
             Rules rules(v);
-            assert<bool>(true, rules.isValid("letter", "A"), bool_s);
-            assert<bool>(true, rules.isValid("letter", "ABCDABDCADCBA"), bool_s);
-            assert<bool>(false, rules.isValid("letter", "Q"), bool_s);
-            assert<bool>(false, rules.isValid("letter", "ABCDABDCADCBAQ"), bool_s);
+            assert<bool>(true, rules.validate("letter", "A"), bool_s);
+            assert<bool>(true, rules.validate("letter", "ABCDABDCADCBA"), bool_s);
+            assert<bool>(false, rules.validate("letter", "Q"), bool_s);
+            assert<bool>(false, rules.validate("letter", "ABCDABDCADCBAQ"), bool_s);
         }
         // Test invalid token exception
         {
             std::string rule = "letter = \"A\" | \"B\" | \"C\" | \"D\";";
             std::string error = "Could not located token in token map";
-            assert_throw(rule_isValid, rule, error);
+            assert_throw(rule_validate, rule, error);
         }
         // Test concatenation matches
         {
             std::string rule = "letter = \"A\" | \"B\" , \"C\" | \"D\";";
             std::vector<char> v(rule.begin(), rule.end());
             Rules rules(v);
-            assert<bool>(true, rules.isValid("letter", "AC"), bool_s);
-            assert<bool>(true, rules.isValid("letter", "AAAABACDC"), bool_s);
-            assert<bool>(false, rules.isValid("letter", "CB"), bool_s);
-            assert<bool>(false, rules.isValid("letter", "CD"), bool_s);
+            assert<bool>(true, rules.validate("letter", "AC"), bool_s);
+            assert<bool>(true, rules.validate("letter", "AAAABACDC"), bool_s);
+            assert<bool>(false, rules.validate("letter", "CB"), bool_s);
+            assert<bool>(false, rules.validate("letter", "CD"), bool_s);
+        }
+        // Test multi rule matches
+        {
+            std::string rule = "letter = \"A\" | \"B\" , \"C\" | \"D\"; digit = \"0\" | \"1\" | \"2\" | \"3\"; word = letter , digit;";
+            std::vector<char> v(rule.begin(), rule.end());
+            Rules rules(v);
+            assert<std::string>("word", rules.getRoot(), string_s);
+            assert<bool>(true, rules.validate("word", "ABCD0123"), bool_s);
+            assert<bool>(false, rules.validate("word", "ABCD"), bool_s);
+            assert<bool>(false, rules.validate("word", "0123"), bool_s);
         }
     }
     catch (std::exception& e)

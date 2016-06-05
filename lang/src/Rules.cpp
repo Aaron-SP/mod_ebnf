@@ -113,16 +113,105 @@ std::string Rules::parseSymbols()
     return root;
 }
 
-bool Rules::isValid(std::string token, std::string input)
+bool Rules::validate(const std::string& token, const std::string& input, size_t& position)
 {
     auto iter = _tokenMap.find(token);
     if (iter != _tokenMap.end())
     {
-        size_t start = 0;
-        return iter->second.matches(input, start);
+        return matches(iter->second, input, position);
     }
     else
     {
         throw std::runtime_error("Could not located token in token map");
     }
+}
+
+bool Rules::validate(const std::string& token, const std::string& input)
+{
+    size_t position = 0;
+    return validate(token, input, position);
+}
+
+bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& position)
+{
+    SyntaxNode* left = node.getLeft();
+    SyntaxNode* right = node.getRight();
+    const size_t size = match.size();
+    const size_t start = position;
+    const SyntaxNode::NodeType type = node.getType();
+    const std::string& symbol = node.getSymbol();
+
+    // If we reached the end
+    if (start == size)
+    {
+        return false;
+    }
+    else if (type == SyntaxNode::LEAF)
+    {
+        for (int i = position; i < size; i++)
+        {
+            if (symbol.size() == 1)
+            {
+                if (symbol[0] != match[i])
+                {
+                    break;
+                }
+                position++;
+            }
+            else if (symbol.size() > 1)
+            {
+                return validate(symbol, match, position);
+            }
+            else
+            {
+                throw std::runtime_error("Symbol has zero size, invalid state occured");
+            }
+        }
+        return position > start;
+    }
+    else if (type == SyntaxNode::ALTER)
+    {
+        bool state;
+        // Loop on characters
+        do
+        {
+            state = false;
+            if (left)
+            {
+                while (matches(*left, match, position))
+                {
+                    state = true;
+                };
+            }
+            if (right)
+            {
+                while (matches(*right, match, position))
+                {
+                    state = true;
+                };
+            }
+        } while (state);
+        // Did we make it to the end?
+        return position == size;
+    }
+    else if (type == SyntaxNode::CONCAT)
+    {
+        bool state = true;
+        if (left)
+        {
+            while (state = matches(*left, match, position)) {}
+        }
+        // If found no matches or found all matches
+        if (position == start || position == size)
+        {
+            return false;
+        }
+        if (right)
+        {
+            while (state = matches(*right, match, position)) {}
+        }
+        // Did we make it to the end?
+        return position == size;
+    }
+    return false;
 }

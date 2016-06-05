@@ -20,11 +20,13 @@ protected:
     std::string _root;
     void parseRules();
     std::string parseSymbols();
+    bool validate(const std::string& token, const std::string& input, size_t& position);
+    bool matches(const SyntaxNode& node, const std::string& match, size_t& position);
 public:
     Rules(const std::string& filePath);
     Rules(const std::vector<char>& rules);
     std::string getRoot() const;
-    bool isValid(std::string token, std::string input);
+    bool validate(const std::string& token, const std::string& input);
 };
 
 #endif

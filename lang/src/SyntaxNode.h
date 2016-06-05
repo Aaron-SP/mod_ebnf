@@ -8,7 +8,7 @@
 class SyntaxNode
 {
 public:
-    enum NodeType {LEAF, ALTER, CONCAT};
+    enum NodeType { LEAF, ALTER, CONCAT };
 private:
     std::string _symbol;
     std::unique_ptr<SyntaxNode> _left;
@@ -22,14 +22,15 @@ public:
     SyntaxNode(const std::string& symbol);
     SyntaxNode(SyntaxNode&& node) = default;
     SyntaxNode& operator=(SyntaxNode&& node) = default;
-    NodeType getType() const;
-    void setType(NodeType type);
+    NodeType getType() const { return _type; };
+    void setType(NodeType type) { _type = type; };
+    SyntaxNode* getLeft() const { return _left.get(); }
+    SyntaxNode* getRight() const { return _right.get(); }
     void setLeft(SyntaxNode& next);
     void setRight(SyntaxNode& next);
-    const std::string& getSymbol() const;
+    const std::string& getSymbol() const { return _symbol; };
     std::vector<std::string> toVector() const;
     std::string print() const;
-    bool matches(const std::string& match, size_t& position);
 };
 
 #endif

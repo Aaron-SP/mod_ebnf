@@ -23,21 +23,6 @@ void SyntaxNode::setRight(SyntaxNode& right)
     _right.reset(new SyntaxNode(std::move(right)));
 }
 
-const std::string& SyntaxNode::getSymbol() const
-{
-    return _symbol;
-}
-
-SyntaxNode::NodeType SyntaxNode::getType() const
-{
-    return _type;
-}
-
-void SyntaxNode::setType(NodeType type)
-{
-    _type = type;
-}
-
 SyntaxNode SyntaxNode::reduce_node(std::stack<SyntaxNode>& stack, SyntaxNode::NodeType type)
 {
     SyntaxNode root(type);
@@ -210,56 +195,4 @@ std::string SyntaxNode::print() const
         out = this->getSymbol();
     }
     return out;
-}
-
-bool SyntaxNode::matches(const std::string& match, size_t& position)
-{
-    SyntaxNode* left = _left.get();
-    SyntaxNode* right = _right.get();
-    const size_t size = match.size();
-    const size_t start = position;
-
-    // If we reached the end
-    if (start == size)
-    {
-        return false;
-    }
-    else if (_type == NodeType::LEAF)
-    {
-        for (int i = position; i < size; i++)
-        {
-            if (_symbol[0] != match[i])
-            {
-                break;
-            }
-            position++;
-        }
-        return position > start;
-    }
-    else if (_type == NodeType::ALTER)
-    {
-        bool state = true;
-        // Loop on characters
-        while (state)
-        {
-            state = left->matches(match, position) || right->matches(match, position);
-        }
-        // Did we make it to the end?
-        return position == size;
-    }
-    else if (_type == NodeType::CONCAT)
-    {
-        bool state = true;
-        // Loop on characters
-        while (state = left->matches(match, position)) {}
-        // If found no matches 
-        if (position == start)
-        {
-            return false;
-        }
-        // Loop on characters
-        while (state = right->matches(match, position)) {}
-        // Did we make it to the end?
-        return position == size;
-    }
 }
