@@ -147,10 +147,10 @@ int main(int argc, char** argv)
             std::vector<char> v(rule.begin(), rule.end());
             Rules rules(v);
             assert<std::string>("word", rules.getRoot(), string_s);
-            assert<bool>(true, rules.validate("word", "A1"), bool_s);
+            assert<bool>(true, rules.validate("word", "AC1"), bool_s);
             assert<bool>(false, rules.validate("word", "ABCD"), bool_s);
             assert<bool>(false, rules.validate("word", "0123"), bool_s);
-            assert<bool>(false, rules.validate("word", "AA0"), bool_s);
+            assert<bool>(false, rules.validate("word", "ACA0"), bool_s);
         }
         // Test repeat alternation
         {
@@ -172,12 +172,32 @@ int main(int argc, char** argv)
             std::string rule = "letter = {(\"A\" | \"B\") , (\"C\" | \"D\")};";
             std::vector<char> v(rule.begin(), rule.end());
             Rules rules(v);
-            assert<bool>(true, rules.validate("letter", "ABCDABCDABCD"), bool_s);
-            assert<bool>(true, rules.validate("letter", "ABCADBCDA"), bool_s);
-            assert<bool>(true, rules.validate("letter", "ABABABCDCDCD"), bool_s);
+            assert<bool>(true, rules.validate("letter", "ACBDBDAC"), bool_s);
+            assert<bool>(false, rules.validate("letter", "ACBDBDACA"), bool_s);
+            assert<bool>(false, rules.validate("letter", "ABCD"), bool_s);
+        }
+        // Test multi rule repeat
+        {
+            std::string rule = "letter = \"A\" | \"B\" | \"C\" | \"D\"; digit = \"0\" | \"1\" | \"2\" | \"3\"; word = { letter } , { digit };";
+            std::vector<char> v(rule.begin(), rule.end());
+            Rules rules(v);
+            assert<std::string>("word", rules.getRoot(), string_s);
+            assert<bool>(true, rules.validate("word", "ABCD0123"), bool_s);
+            assert<bool>(false, rules.validate("word", "A1A"), bool_s);
+            assert<bool>(false, rules.validate("word", "ABCDE01234"), bool_s);
+        }
+        // Test repeat multi rule concatenation
+        {
+            std::string rule = "letter = \"A\" , \"B\"; word = { letter };";
+            std::vector<char> v(rule.begin(), rule.end());
+            Rules rules(v);
+            assert<std::string>("word", rules.getRoot(), string_s);
+            assert<bool>(true, rules.validate("word", "ABABAB"), bool_s);
+            assert<bool>(false, rules.validate("word", "AABAB"), bool_s);
+            assert<bool>(false, rules.validate("word", "ABA"), bool_s);
         }
     }
-    catch (std::exception& e)
+    catch (const std::exception& e)
     {
         std::cout << e.what() << std::endl;
     }

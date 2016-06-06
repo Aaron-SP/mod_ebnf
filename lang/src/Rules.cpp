@@ -118,8 +118,14 @@ bool Rules::validate(const std::string& token, const std::string& input, size_t&
     auto iter = _tokenMap.find(token);
     if (iter != _tokenMap.end())
     {
-        matches(iter->second, input, position);
-        return input.size() == position;
+        size_t reset = position;
+        bool ret = matches(iter->second, input, position);
+        // Reset position if matches fails
+        if (!ret)
+        {
+            position = reset;
+        }
+        return ret;
     }
     else
     {
@@ -130,7 +136,7 @@ bool Rules::validate(const std::string& token, const std::string& input, size_t&
 bool Rules::validate(const std::string& token, const std::string& input)
 {
     size_t position = 0;
-    return validate(token, input, position);
+    return validate(token, input, position) && input.size() == position;
 }
 
 bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& position)
@@ -142,6 +148,11 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
     const SyntaxNode::NodeType type = node.getType();
     const std::string& symbol = node.getSymbol();
     const bool repeat = node.getRepeat();
+
+    if ((!left || !right) && type != SyntaxNode::LEAF)
+    {
+        throw std::runtime_error("Rules.matches(): null pointer");
+    }
 
     // If we reached the end
     if (start == size)
@@ -173,7 +184,14 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
         }
         else if (symbol.size() > 1)
         {
-            return validate(symbol, match, position);
+            if (repeat)
+            {
+                while (validate(symbol, match, position)) {}
+            }
+            else
+            {
+                validate(symbol, match, position);
+            }
         }
         else
         {
@@ -184,84 +202,51 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
     else if (type == SyntaxNode::ALTER)
     {
         bool state;
-        // Loop on characters
         if (repeat)
         {
             do
             {
                 state = false;
-                if (left)
+                while (matches(*left, match, position))
                 {
-                    while (matches(*left, match, position))
-                    {
-                        state = true;
-                    };
-                }
-                if (right)
+                    state = true;
+                };
+                while (matches(*right, match, position))
                 {
-                    while (matches(*right, match, position))
-                    {
-                        state = true;
-                    };
-                }
+                    state = true;
+                };
             } while (state);
         }
         else
         {
-            if (matches(*left, match, position))
-            {
-                return position > start;
-            }
-            if (matches(*right, match, position))
-            {
-                return position > start;
-            }
+            return matches(*left, match, position)
+                || matches(*right, match, position);
         }
-        // Did we make it to the end?
+        // Did we make any progress
         return position > start;
     }
     else if (type == SyntaxNode::CONCAT)
     {
-        bool lState;
-        bool rState;
+        bool lState = false;
+        bool rState = false;
         if (repeat)
         {
             do
             {
-                lState = rState = false;
-                if (left)
+                lState = matches(*left, match, position);
+                if (!lState)
                 {
-                    while (matches(*left, match, position)) 
-                    {
-                        lState = true;
-                    }
+                    break;
                 }
-                // If found no matches or found all matches
-                if (position == start || position == size)
-                {
-                    return false;
-                }
-                if (right)
-                {
-                    while (matches(*right, match, position)) 
-                    {
-                        rState = true;
-                    }
-                }
-                // Did we make it to the end?
+                rState = matches(*right, match, position);
             } while (lState && rState);
+            return rState;
         }
         else
         {
-            matches(*left, match, position);
-            // If found no matches or found all matches
-            if (position == start || position == size)
-            {
-                return false;
-            }
-            matches(*right, match, position);
+            return matches(*left, match, position) && 
+                matches(*right, match, position);
         }
-        return position > start;
     }
     return false;
 }

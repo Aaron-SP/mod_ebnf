@@ -30,7 +30,7 @@ public:
     void setLeft(SyntaxNode& next);
     void setRight(SyntaxNode& next);
     bool getRepeat() const { return _repeat; }
-    void setRepeat(bool repeat);
+    void setRepeat(bool repeat) { _repeat = repeat; }
     const std::string& getSymbol() const { return _symbol; };
     std::vector<std::string> toVector() const;
     std::string print() const;
