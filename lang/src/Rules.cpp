@@ -34,6 +34,7 @@ void Rules::parseRules()
     bool quotes = false;
 
     const size_t size = _text.size();
+    rule.reserve(size);
     for (size_t i = 0; i < size; i++)
     {
         const char ch = _text[i];
@@ -46,7 +47,7 @@ void Rules::parseRules()
             {
                 // push_back string to list and reset the current rule
                 _ruleList.push_back(rule);
-                rule = std::string();
+                rule.clear();
                 continue;
             }
             rule += ch;
@@ -165,7 +166,7 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
         {
             if (repeat)
             {
-                for (int i = position; i < size; i++)
+                for (size_t i = position; i < size; i++)
                 {
                     if (symbol[0] != match[i])
                     {
@@ -210,11 +211,11 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
                 while (matches(*left, match, position))
                 {
                     state = true;
-                };
+                }
                 while (matches(*right, match, position))
                 {
                     state = true;
-                };
+                }
             } while (state);
         }
         else
@@ -222,7 +223,6 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
             return matches(*left, match, position)
                 || matches(*right, match, position);
         }
-        // Did we make any progress
         return position > start;
     }
     else if (type == SyntaxNode::CONCAT)
@@ -244,7 +244,7 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
         }
         else
         {
-            return matches(*left, match, position) && 
+            return matches(*left, match, position) &&
                 matches(*right, match, position);
         }
     }

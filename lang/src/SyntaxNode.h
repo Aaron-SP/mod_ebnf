@@ -33,7 +33,6 @@ public:
     void setRepeat(bool repeat) { _repeat = repeat; }
     const std::string& getSymbol() const { return _symbol; };
     std::vector<std::string> toVector() const;
-    std::string print() const;
 };
 
 #endif

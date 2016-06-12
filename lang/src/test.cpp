@@ -158,6 +158,7 @@ int main(int argc, char** argv)
             std::vector<char> v(rule.begin(), rule.end());
             Rules rules(v);
             assert<bool>(true, rules.validate("letter", "AAAABBBBCCCCDDD"), bool_s);
+            assert<bool>(true, rules.validate("letter", "ABCDDCBAADCBCABD"), bool_s);
         }
         // Test repeat concatenation
         {
@@ -165,6 +166,7 @@ int main(int argc, char** argv)
             std::vector<char> v(rule.begin(), rule.end());
             Rules rules(v);
             assert<bool>(true, rules.validate("letter", "AAAABBBBCCCCDDD"), bool_s);
+            assert<bool>(true, rules.validate("letter", "ABABABACDCDCDC"), bool_s);
             assert<bool>(false, rules.validate("letter", "AAAABBBBCCCCDDDA"), bool_s);
         }
         // Test advanced repeat concatenation
@@ -193,8 +195,29 @@ int main(int argc, char** argv)
             Rules rules(v);
             assert<std::string>("word", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("word", "ABABAB"), bool_s);
+            assert<bool>(false, rules.validate("word", "BABABA"), bool_s);
             assert<bool>(false, rules.validate("word", "AABAB"), bool_s);
             assert<bool>(false, rules.validate("word", "ABA"), bool_s);
+        }
+        // Priority brackets
+        {
+            std::string rule = "letter = { ( \"A\" | \")\" ) , ( \"C\" | \"D\" ) };";
+            std::vector<char> v(rule.begin(), rule.end());
+            Rules rules(v);
+            assert<std::string>("letter", rules.getRoot(), string_s);
+            assert<bool>(true, rules.validate("letter", "AC)D"), bool_s);
+            assert<bool>(false, rules.validate("letter", "AC(D"), bool_s);
+        }
+        // Test recursive rule substitution
+        {
+            std::string rule = "letter = \"A\" | \"B\" | ( \"(\" , letter , \")\" ); word = { letter };";
+            std::vector<char> v(rule.begin(), rule.end());
+            Rules rules(v);
+            assert<std::string>("word", rules.getRoot(), string_s);
+            assert<bool>(true, rules.validate("word", "ABBAA"), bool_s);
+            assert<bool>(true, rules.validate("word", "(A)BBAA"), bool_s);
+            assert<bool>(false, rules.validate("word", "(A)C"), bool_s);
+            assert<bool>(false, rules.validate("word", "A(C)"), bool_s);
         }
     }
     catch (const std::exception& e)
