@@ -229,8 +229,10 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
     {
         bool lState = false;
         bool rState = false;
+        size_t reset = position;
         if (repeat)
         {
+            // Get run of concatenations
             do
             {
                 lState = matches(*left, match, position);
@@ -239,8 +241,15 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
                     break;
                 }
                 rState = matches(*right, match, position);
+                if (lState && rState)
+                {
+                    reset = position;
+                }
             } while (lState && rState);
-            return rState;
+
+            // Reset if only odd number of matches
+            position = reset;
+            return position > start;
         }
         else
         {
