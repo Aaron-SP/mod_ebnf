@@ -6,11 +6,6 @@
 #include <vector>
 #include <map>
 
-class Token
-{
-
-};
-
 class Rules
 {
 protected:
@@ -25,7 +20,7 @@ protected:
 public:
     Rules(const std::string& filePath);
     Rules(const std::vector<char>& rules);
-    std::string getRoot() const;
+    std::string getRoot() const { return _root; }
     bool validate(const std::string& token, const std::string& input);
 };
 

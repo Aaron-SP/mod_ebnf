@@ -20,25 +20,18 @@ Rules::Rules(const std::vector<char>& rules) : _text(rules)
     _root = parseSymbols();
 }
 
-std::string Rules::getRoot() const
-{
-    return _root;
-}
-
 void Rules::parseRules()
 {
     // white space list
     std::vector<char> ws{ 9, 10, 13, 32 };
     std::string rule = std::string();
+    rule.reserve(_text.size());
     char quote_char = 0;
     bool quotes = false;
 
-    const size_t size = _text.size();
-    rule.reserve(size);
-    for (size_t i = 0; i < size; i++)
+    // Remove spaces by copying into new buffer
+    for (const char ch : _text)
     {
-        const char ch = _text[i];
-
         // If whitespace then ignore
         if (std::find(ws.begin(), ws.end(), ch) == ws.end())
         {
