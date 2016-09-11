@@ -74,7 +74,7 @@ int main(int argc, char** argv)
         // Test no closing quote
         {
             std::string rule = "identifier = letter , { letter | digit | \"_ };";
-            std::string error = "Quotation '/\" mismatch. Check rules input file";
+            std::string error = "End of file found before closing quotation";
             assert_throw(make_rule, rule, error);
         }
         // Test no semi colon
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
         //  Test no 2nd brace
         {
             std::string rule = "identifier = identifier | letter , { letter | digit | \"_\";";
-            std::string error = "Found EOL before end of quote/brace";
+            std::string error = "Found end of file before end of quote/brace";
             assert_throw(make_rule, rule, error);
         }
         // Test empty symbol

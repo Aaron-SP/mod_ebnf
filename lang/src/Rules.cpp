@@ -24,7 +24,7 @@ void Rules::parseRules()
 {
     // white space list
     std::vector<char> ws{ 9, 10, 13, 32 };
-    std::string rule = std::string();
+    std::string rule;
     rule.reserve(_text.size());
     char quote_char = 0;
     bool quotes = false;
@@ -49,7 +49,7 @@ void Rules::parseRules()
     // If we have quotes turned on then it is a parse error
     if (quotes)
     {
-        throw std::runtime_error("Quotation '/\" mismatch. Check rules input file");
+        throw std::runtime_error("End of file found before closing quotation");
     }
     if (_ruleList.size() == 0)
     {

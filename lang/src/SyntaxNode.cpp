@@ -102,7 +102,7 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
                 ch = '!';
                 if (quotes || brackets)
                 {
-                    throw std::runtime_error("Found EOL before end of quote/brace");
+                    throw std::runtime_error("Found end of file before end of quote/brace");
                 }
             }
             // Process operator
