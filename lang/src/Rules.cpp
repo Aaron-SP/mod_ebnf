@@ -143,6 +143,7 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
     const std::string& symbol = node.getSymbol();
     const bool repeat = node.getRepeat();
 
+    // If null pointer than it is a leaf
     if ((!left || !right) && type != SyntaxNode::LEAF)
     {
         throw std::runtime_error("Rules.matches(): null pointer");
@@ -157,98 +158,47 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
     {
         if (symbol.size() == 1)
         {
-            if (repeat)
+            const size_t stop = repeat ? size : start + 1;
+            for (size_t i = start; i < stop; i++)
             {
-                for (size_t i = position; i < size; i++)
+                if (symbol[0] != match[i])
                 {
-                    if (symbol[0] != match[i])
-                    {
-                        break;
-                    }
-                    position++;
+                    break;
                 }
-            }
-            else
-            {
-                if (symbol[0] == match[position])
-                {
-                    position++;
-                }
+                position++;
             }
         }
         else if (symbol.size() > 1)
         {
-            if (repeat)
-            {
-                while (validate(symbol, match, position)) {}
-            }
-            else
-            {
-                validate(symbol, match, position);
-            }
+            // Short circuit evaluation, repeat and non-repeat
+            while (validate(symbol, match, position) && repeat) {}
         }
         else
         {
             throw std::runtime_error("Symbol has zero size, invalid state occured");
         }
-        return position > start;
     }
     else if (type == SyntaxNode::ALTER)
     {
-        bool state;
-        if (repeat)
-        {
-            do
-            {
-                state = false;
-                while (matches(*left, match, position))
-                {
-                    state = true;
-                }
-                while (matches(*right, match, position))
-                {
-                    state = true;
-                }
-            } while (state);
-        }
-        else
-        {
-            return matches(*left, match, position)
-                || matches(*right, match, position);
-        }
-        return position > start;
+        // Short circuit evaluation, repeat and non-repeat, left or right
+        while ((matches(*left, match, position) || matches(*right, match, position)) && repeat) {}
     }
     else if (type == SyntaxNode::CONCAT)
     {
-        bool lState = false;
-        bool rState = false;
         size_t reset = position;
-        if (repeat)
-        {
-            // Get run of concatenations
-            do
-            {
-                lState = matches(*left, match, position);
-                if (!lState)
-                {
-                    break;
-                }
-                rState = matches(*right, match, position);
-                if (lState && rState)
-                {
-                    reset = position;
-                }
-            } while (lState && rState);
 
-            // Reset if only odd number of matches
-            position = reset;
-            return position > start;
-        }
-        else
+        // Short circuit evaluation, repeat and non-repeat, left and right
+        while (matches(*left, match, position) && matches(*right, match, position))
         {
-            return matches(*left, match, position) &&
-                matches(*right, match, position);
+            reset = position;
+            if (!repeat)
+            {
+                break;
+            }
         }
+
+        // Reset when only left matches but not right
+        position = reset;
     }
-    return false;
+    return position > start;
 }

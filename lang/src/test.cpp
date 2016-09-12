@@ -1,5 +1,6 @@
 #include "Lexer.h"
 #include <iostream>
+#include <chrono>
 
 std::string bool_s(const bool& b)
 {
@@ -64,6 +65,9 @@ int main(int argc, char** argv)
 {
     try
     {
+        // Start time
+        auto start = std::chrono::high_resolution_clock::now();
+
         // Test getRoot()
         {
             std::string rule = "identifier = letter , { letter | digit | \"_\" };";
@@ -241,12 +245,22 @@ int main(int argc, char** argv)
             std::vector<char> v(rule.begin(), rule.end());
             Rules rules(v);
             assert<std::string>("grammar", rules.getRoot(), string_s);
-            assert<bool>(true, rules.validate("grammar",  rule), bool_s);
+            assert<bool>(true, rules.validate("grammar", rule), bool_s);
         }
+
+        // End time
+        auto end = std::chrono::high_resolution_clock::now();
+        // Delta in seconds
+        auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+
+        // All tests passed
+        std::cout << std::endl << "Tests passed in " << time_span.count() << " seconds!" << std::endl;
     }
     catch (const std::exception& e)
     {
-        std::cout << e.what() << std::endl;
+        // Tests failed
+        std::cout << e.what() << std::endl << std::endl;
+        std::cout << "Tests failed!" << std::endl;
     }
     return 0;
 }
