@@ -2,7 +2,7 @@
 
 #include <string>
 #include <memory>
-#include <vector>
+#include <set>
 #include <stack>
 
 class SyntaxNode
@@ -32,7 +32,7 @@ public:
     bool getRepeat() const { return _repeat; }
     void setRepeat(bool repeat) { _repeat = repeat; }
     const std::string& getSymbol() const { return _symbol; };
-    std::vector<std::string> toVector() const;
+    void toSet(std::set<std::string>& out) const;
 };
 
 #endif

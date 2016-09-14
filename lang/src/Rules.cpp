@@ -72,9 +72,8 @@ std::string Rules::parseSymbols()
             std::string equality = rule.substr(found + 1, rule.size() - found - 1);
             // process rhs
             SyntaxNode node = SyntaxNode::tokenize(token, equality);
-            std::vector<std::string> symbols = node.toVector();
-            // Get the SyntaxNode's symbol and put them in the set
-            std::copy(symbols.begin(), symbols.end(), std::inserter(set, set.end()));
+            // Add symbols to set
+            node.toSet(set);
             // map lhs to rhs for processing
             _tokenMap.insert(std::pair<std::string, SyntaxNode>(token, std::move(node)));
         }

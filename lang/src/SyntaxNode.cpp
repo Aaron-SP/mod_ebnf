@@ -150,24 +150,20 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
     return std::move(stack.top());
 }
 
-std::vector<std::string> SyntaxNode::toVector() const
+void SyntaxNode::toSet(std::set<std::string>& out) const
 {
-    std::vector<std::string> out;
     SyntaxNode* left = _left.get();
     SyntaxNode* right = _right.get();
     if (left)
     {
-        std::vector<std::string> recurse = left->toVector();
-        std::move(recurse.begin(), recurse.end(), std::back_inserter(out));
+        left->toSet(out);
     }
     if (right)
     {
-        std::vector<std::string> recurse = right->toVector();
-        std::move(recurse.begin(), recurse.end(), std::back_inserter(out));
+        right->toSet(out);
     }
     if (_type == NodeType::LEAF)
     {
-        out.emplace_back(this->getSymbol());
+        out.insert(this->getSymbol());
     }
-    return out;
 }
