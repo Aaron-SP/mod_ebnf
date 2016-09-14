@@ -25,13 +25,13 @@ std::vector<char> parse::read_file(const std::string& filePath)
     return data;
 }
 
-std::string& parse::strip_squotes(std::string& str)
+std::string& parse::strip_single(std::string& str)
 {
     str.erase(remove_if(str.begin(), str.end(), [](char chr) { return chr == '\''; }), str.end());
     return str;
 }
 
-std::string& parse::strip_dquotes(std::string& str)
+std::string& parse::strip_double(std::string& str)
 {
     str.erase(remove_if(str.begin(), str.end(), [](char chr) { return chr == '\"'; }), str.end());
     return str;
@@ -40,6 +40,7 @@ std::string& parse::strip_dquotes(std::string& str)
 bool parse::strip_quotes(std::string& str)
 {
     int s_quote = 0; int d_quote = 0;
+    // Count quote occurences
     for (auto& ch : str)
     {
         if (ch == '\"')
@@ -59,28 +60,29 @@ bool parse::strip_quotes(std::string& str)
         }
         else if (s_quote > 1)
         {
-            parse::strip_squotes(str);
+            parse::strip_single(str);
         }
         else if (d_quote > 1)
         {
-            parse::strip_dquotes(str);
+            parse::strip_double(str);
         }
     }
     else if (s_quote)
     {
-        parse::strip_squotes(str);
+        parse::strip_single(str);
     }
     else if (d_quote)
     {
-        parse::strip_dquotes(str);
+        parse::strip_double(str);
     }
+    // false == 0 and true = !false
     return s_quote || d_quote;
 }
 
 bool parse::in_quotes(const char ch, bool& quotes, char& quote_char)
 {
     bool action = false;
-    if ((ch == '\'' || ch == '\"'))
+    if (ch == '\'' || ch == '\"')
     {
         if (!quotes)
         {

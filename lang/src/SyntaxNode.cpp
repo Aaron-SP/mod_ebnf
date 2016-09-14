@@ -157,13 +157,13 @@ std::vector<std::string> SyntaxNode::toVector() const
     SyntaxNode* right = _right.get();
     if (left)
     {
-        std::vector<std::string> rec = left->toVector();
-        std::move(rec.begin(), rec.end(), std::back_inserter(out));
+        std::vector<std::string> recurse = left->toVector();
+        std::move(recurse.begin(), recurse.end(), std::back_inserter(out));
     }
     if (right)
     {
-        std::vector<std::string> rec = right->toVector();
-        std::move(rec.begin(), rec.end(), std::back_inserter(out));
+        std::vector<std::string> recurse = right->toVector();
+        std::move(recurse.begin(), recurse.end(), std::back_inserter(out));
     }
     if (_type == NodeType::LEAF)
     {
