@@ -9,12 +9,12 @@ SyntaxNode::SyntaxNode(const std::string& symbol) : _symbol(symbol), _type(NodeT
 
 void SyntaxNode::setLeft(SyntaxNode& left)
 {
-    _left.reset(new SyntaxNode(std::move(left)));
+    _left = std::make_unique<SyntaxNode>(std::move(left));
 }
 
 void SyntaxNode::setRight(SyntaxNode& right)
 {
-    _right.reset(new SyntaxNode(std::move(right)));
+    _right = std::make_unique<SyntaxNode>(std::move(right));
 }
 
 SyntaxNode SyntaxNode::reduce_node(std::stack<SyntaxNode>& stack, SyntaxNode::NodeType type)
@@ -48,7 +48,6 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
     bool quotes = false;
     bool brackets = false;
     bool bracket_action = false;
-    bool recurse = false;
     bool cache = false;
     char quote_char = 0;
     char bracket_char = 0;
@@ -78,67 +77,64 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
         // Escape bracket
         else if (bracket_action && !brackets)
         {
-            recurse = true;
+            // Cache allows node reuse in operator
+            SyntaxNode again = tokenize(token, equality.substr(start, end - start));
+            if (last_bracket == '{')
+            {
+                again.setRepeat(true);
+            }
+            stack.push(std::move(again));
+            cache = true;
+            // Skip everything to after bracket
+            start = end + 1;
         }
 
-        if (((ch == '|' || ch == ',' || recurse || cache) && !quotes && !brackets) || end == size - 1)
+        // If end of line get the correct length and mark EOL
+        if (end == size - 1)
         {
-            // Cache allows node reuse in operator
-            if (recurse)
+            end++;
+            ch = '!';
+            if (quotes || brackets)
             {
-                SyntaxNode again = tokenize(token, equality.substr(start, end - start));
-                if (last_bracket == '{')
-                {
-                    again.setRepeat(true);
-                }
-                stack.push(std::move(again));
-                recurse = false;
-                cache = true;
+                throw std::runtime_error("Found end of file before end of quote/brace");
             }
-            // If end of line get the correct length and mark EOL
-            if (end == size - 1)
-            {
-                end++;
-                ch = '!';
-                if (quotes || brackets)
-                {
-                    throw std::runtime_error("Found end of file before end of quote/brace");
-                }
-            }
-            // Process operator
-            if (ch == '|' || ch == ',' || ch == '!')
-            {
-                if (!cache)
-                {
-                    // Check for empty symbol
-                    if (end - start <= 0)
-                    {
-                        throw std::runtime_error("Empty symbol found while constructing rule");
-                    }
-                    // Make a node for the input
-                    std::string s = equality.substr(start, end - start);
-                    parse::strip_quotes(s);
-                    SyntaxNode rhs(s);
-                    add_node(stack, rhs, SyntaxNode::ALTER);
-                }
-                else
-                {
-                    // Pop cached node off the stack
-                    SyntaxNode rhs = std::move(stack.top());
-                    stack.pop();
-                    add_node(stack, rhs, SyntaxNode::ALTER);
-                    cache = false;
-                }
-                if (ch == ',')
-                {
-                    // Recurse the rest of the input; skip this character
-                    start = end + 1;
-                    SyntaxNode again = tokenize(token, equality.substr(start, size - start));
-                    add_node(stack, again, SyntaxNode::CONCAT);
+        }
 
-                    // end the loop
-                    end = size - 1;
+        // Process operator
+        bool process = (ch == '|' || ch == ',' || ch == '!');
+
+        if (process && (!quotes && !brackets))
+        {
+            if (!cache)
+            {
+                // Check for empty symbol
+                if (end - start <= 0)
+                {
+                    throw std::runtime_error("Empty symbol found while constructing rule");
                 }
+                // Make a node for the input
+                std::string s = equality.substr(start, end - start);
+                parse::strip_quotes(s);
+                SyntaxNode rhs(s);
+                add_node(stack, rhs, SyntaxNode::ALTER);
+            }
+            else
+            {
+                // Pop cached node off the stack
+                SyntaxNode rhs = std::move(stack.top());
+                stack.pop();
+                add_node(stack, rhs, SyntaxNode::ALTER);
+                cache = false;
+            }
+            if (ch == ',')
+            {
+                // Recurse the rest of the input; skip this character
+                start = end + 1;
+                SyntaxNode again = tokenize(token, equality.substr(start, size - start));
+                add_node(stack, again, SyntaxNode::CONCAT);
+
+                // end the loop
+                end = size - 1;
             }
             start = end + 1;
         }
