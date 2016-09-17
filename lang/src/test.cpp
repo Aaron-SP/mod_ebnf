@@ -219,21 +219,57 @@ int main(int argc, char** argv)
         }
         // Test simple EBNF rules
         {
-            std::string rule = "letter=\"A\"|\"B\"|\"C\"|\"D\"|\"E\"|\"F\"|\"G\"|\"H\"|\"I\"|\"J\"|\"K\"|\"L\"|\"M\"|\"N\"|\"O\"|\"P\"|\"Q\"|\"R\"|\"S\"|\"T\"|\"U\"|\"V\"|\"W\"|\"X\"|\"Y\"|\"Z\"|\"a\"|\"b\"|\"c\"|\"d\"|\"e\"|\"f\"|\"g\"|\"h\"|\"i\"|\"j\"|\"k\"|\"l\"|\"m\"|\"n\"|\"o\"|\"p\"|\"q\"|\"r\"|\"s\"|\"t\"|\"u\"|\"v\"|\"w\"|\"x\"|\"y\"|\"z\";digit=\"0\"|\"1\"|\"2\"|\"3\"|\"4\"|\"5\"|\"6\"|\"7\"|\"8\"|\"9\";symbol=\"[\"|\"]\"|\"{\"|\"}\"|\"(\"|\")\"|\"<\"|\">\"|\"'\"|'\"'|\"=\"|\"|\"|\".\"|\",\";character=letter|digit|symbol|\"_\";identifier=letter,{letter|digit|\"_\"};terminal=('\"',character,'\"');lhs=identifier;rhs=identifier|{terminal|\"|\"};rule=lhs,\"=\",rhs,\";\";grammar={rule};";
+            std::string rule = "letter=\"A\"|\"B\"|\"C\"|\"D\"|\"E\"|\"F\"|\"G\"|"
+                "\"H\"|\"I\"|\"J\"|\"K\"|\"L\"|\"M\"|\"N\"|\"O\"|\"P\"|\"Q\"|\"R\"|"
+                "\"S\"|\"T\"|\"U\"|\"V\"|\"W\"|\"X\"|\"Y\"|\"Z\"|\"a\"|\"b\"|\"c\"|"
+                "\"d\"|\"e\"|\"f\"|\"g\"|\"h\"|\"i\"|\"j\"|\"k\"|\"l\"|\"m\"|\"n\"|"
+                "\"o\"|\"p\"|\"q\"|\"r\"|\"s\"|\"t\"|\"u\"|\"v\"|\"w\"|\"x\"|\"y\"|"
+                "\"z\";digit=\"0\"|\"1\"|\"2\"|\"3\"|\"4\"|\"5\"|\"6\"|\"7\"|\"8\"|"
+                "\"9\";symbol=\"[\"|\"]\"|\"{\"|\"}\"|\"(\"|\")\"|\"<\"|\">\"|\"'\"|"
+                "'\"'|\"=\"|\"|\"|\".\"|\",\";character=letter|digit|symbol|\"_\";"
+                "identifier=letter,{letter|digit|\"_\"};terminal=('\"',character,'\"');"
+                "lhs=identifier;rhs=identifier|{terminal|\"|\"};"
+                "rule=lhs,\"=\",rhs,\";\";grammar={rule};";
             Rules rules(rule);
             assert<std::string>("grammar", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("grammar", "letter=\"A\"|\"B\"|\"C\"|\"D\";word=letter;"), bool_s);
         }
         // Test recursive EBNF rules
         {
-            std::string rule = "letter=\"A\"|\"B\"|\"C\"|\"D\"|\"E\"|\"F\"|\"G\"|\"H\"|\"I\"|\"J\"|\"K\"|\"L\"|\"M\"|\"N\"|\"O\"|\"P\"|\"Q\"|\"R\"|\"S\"|\"T\"|\"U\"|\"V\"|\"W\"|\"X\"|\"Y\"|\"Z\"|\"a\"|\"b\"|\"c\"|\"d\"|\"e\"|\"f\"|\"g\"|\"h\"|\"i\"|\"j\"|\"k\"|\"l\"|\"m\"|\"n\"|\"o\"|\"p\"|\"q\"|\"r\"|\"s\"|\"t\"|\"u\"|\"v\"|\"w\"|\"x\"|\"y\"|\"z\";digit=\"0\"|\"1\"|\"2\"|\"3\"|\"4\"|\"5\"|\"6\"|\"7\"|\"8\"|\"9\";symbol=\"[\"|\"]\"|\"{\"|\"}\"|\"(\"|\")\"|\"<\"|\">\"|\"'\"|'\"'|\"=\"|\"|\"|\".\"|\",\";character=letter|digit|symbol|\"_\";identifier=letter,{letter|digit|\"_\"};terminal=('\"',character,'\"');separator=\",\"|\"|\";expression=(identifier|terminal)|(\"{\",expression,\"}\")|(\"(\",expression,\")\");lhs=identifier;rhs=({expression,separator},expression)|expression;rule=lhs,\"=\",rhs,\";\";grammar={rule};";
+            std::string rule = "letter=\"A\"|\"B\"|\"C\"|\"D\"|\"E\"|\"F\"|\"G\"|"
+                "\"H\"|\"I\"|\"J\"|\"K\"|\"L\"|\"M\"|\"N\"|\"O\"|\"P\"|\"Q\"|\"R\"|"
+                "\"S\"|\"T\"|\"U\"|\"V\"|\"W\"|\"X\"|\"Y\"|\"Z\"|\"a\"|\"b\"|\"c\"|"
+                "\"d\"|\"e\"|\"f\"|\"g\"|\"h\"|\"i\"|\"j\"|\"k\"|\"l\"|\"m\"|\"n\"|"
+                "\"o\"|\"p\"|\"q\"|\"r\"|\"s\"|\"t\"|\"u\"|\"v\"|\"w\"|\"x\"|\"y\"|"
+                "\"z\";digit=\"0\"|\"1\"|\"2\"|\"3\"|\"4\"|\"5\"|\"6\"|\"7\"|\"8\"|"
+                "\"9\";symbol=\"[\"|\"]\"|\"{\"|\"}\"|\"(\"|\")\"|\"<\"|\">\"|\"'\"|"
+                "'\"'|\"=\"|\"|\"|\".\"|\",\";character=letter|digit|symbol|\"_\";"
+                "identifier=letter,{letter|digit|\"_\"};terminal=('\"',character,'\"');"
+                "separator=\",\"|\"|\";"
+                "expression=(identifier|terminal)|(\"{\",expression,\"}\")|(\"(\",expression,\")\");"
+                "lhs=identifier;rhs=({expression,separator},expression)|expression;"
+                "rule=lhs,\"=\",rhs,\";\";grammar={rule};";
             Rules rules(rule);
             assert<std::string>("grammar", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("grammar", "letter=\"A\"|\"B\",\"C\"|\"D\";word=letter;"), bool_s);
         }
         // Test nested recursive EBNF rules on itself
         {
-            std::string rule = "letter=\"A\"|\"B\"|\"C\"|\"D\"|\"E\"|\"F\"|\"G\"|\"H\"|\"I\"|\"J\"|\"K\"|\"L\"|\"M\"|\"N\"|\"O\"|\"P\"|\"Q\"|\"R\"|\"S\"|\"T\"|\"U\"|\"V\"|\"W\"|\"X\"|\"Y\"|\"Z\"|\"a\"|\"b\"|\"c\"|\"d\"|\"e\"|\"f\"|\"g\"|\"h\"|\"i\"|\"j\"|\"k\"|\"l\"|\"m\"|\"n\"|\"o\"|\"p\"|\"q\"|\"r\"|\"s\"|\"t\"|\"u\"|\"v\"|\"w\"|\"x\"|\"y\"|\"z\";digit=\"0\"|\"1\"|\"2\"|\"3\"|\"4\"|\"5\"|\"6\"|\"7\"|\"8\"|\"9\";symbol=\"[\"|\"]\"|\"{\"|\"}\"|\"(\"|\")\"|\"<\"|\">\"|\"'\"|'\"'|\"=\"|\"|\"|\".\"|\",\"|\";\";character=letter|digit|symbol|\"_\";identifier=letter,{letter|digit|\"_\"};terminal=('\"',character,'\"')|(\"'\",character,\"'\");separator=\",\"|\"|\";term=identifier|terminal;expression=({term,separator},term)|(\"(\",expression,\")\")|(\"{\",expression,\"}\")|term;statement=({expression,separator},expression)|(\"(\",statement,\")\")|(\"{\",statement,\"}\")|expression;lhs=identifier;rhs=({statement,separator},statement)|statement;rule=lhs,\"=\",rhs,\";\";grammar={rule};";
+            std::string rule = "letter=\"A\"|\"B\"|\"C\"|\"D\"|\"E\"|\"F\"|\"G\"|"
+                "\"H\"|\"I\"|\"J\"|\"K\"|\"L\"|\"M\"|\"N\"|\"O\"|\"P\"|\"Q\"|\"R\"|"
+                "\"S\"|\"T\"|\"U\"|\"V\"|\"W\"|\"X\"|\"Y\"|\"Z\"|\"a\"|\"b\"|\"c\"|"
+                "\"d\"|\"e\"|\"f\"|\"g\"|\"h\"|\"i\"|\"j\"|\"k\"|\"l\"|\"m\"|\"n\"|"
+                "\"o\"|\"p\"|\"q\"|\"r\"|\"s\"|\"t\"|\"u\"|\"v\"|\"w\"|\"x\"|\"y\"|"
+                "\"z\";digit=\"0\"|\"1\"|\"2\"|\"3\"|\"4\"|\"5\"|\"6\"|\"7\"|\"8\"|"
+                "\"9\";symbol=\"[\"|\"]\"|\"{\"|\"}\"|\"(\"|\")\"|\"<\"|\">\"|\"'\"|"
+                "'\"'|\"=\"|\"|\"|\".\"|\",\"|\";\";character=letter|digit|symbol|\"_\";"
+                "identifier=letter,{letter|digit|\"_\"};"
+                "terminal=('\"',character,'\"')|(\"'\",character,\"'\");separator=\",\"|\"|\";"
+                "term=identifier|terminal;"
+                "expression=({term,separator},term)|(\"(\",expression,\")\")|(\"{\",expression,\"}\")|term;"
+                "statement=({expression,separator},expression)|(\"(\",statement,\")\")|(\"{\",statement,\"}\")|expression;"
+                "lhs=identifier;rhs=({statement,separator},statement)|statement;"
+                "rule=lhs,\"=\",rhs,\";\";grammar={rule};";
             Rules rules(rule);
             assert<std::string>("grammar", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("grammar", rule), bool_s);
