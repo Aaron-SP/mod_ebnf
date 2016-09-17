@@ -50,14 +50,12 @@ void assert_throw(void(*func)(const std::string&), std::string arg, std::string 
 
 void make_rule(const std::string& rule)
 {
-    std::vector<char> v(rule.begin(), rule.end());
-    Rules rules(v);
+    Rules rules(rule);
 }
 
 void rule_validate(const std::string& rule)
 {
-    std::vector<char> v(rule.begin(), rule.end());
-    Rules rules(v);
+    Rules rules(rule);
     rules.validate("pie", "test");
 }
 
@@ -71,8 +69,7 @@ int main(int argc, char** argv)
         // Test getRoot()
         {
             std::string rule = "identifier = letter , { letter | digit | \"_\" };";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<std::string>("identifier", rules.getRoot(), string_s);
         }
         // Test no closing quote
@@ -120,8 +117,7 @@ int main(int argc, char** argv)
         // Test alternation matches
         {
             std::string rule = "letter = \"A\" | \"B\" | \"C\" | \"D\";";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<bool>(true, rules.validate("letter", "A"), bool_s);
             assert<bool>(true, rules.validate("letter", "B"), bool_s);
             assert<bool>(false, rules.validate("letter", "Q"), bool_s);
@@ -137,8 +133,7 @@ int main(int argc, char** argv)
         // Test concatenation matches
         {
             std::string rule = "letter = \"A\" | \"B\" , \"C\" | \"D\";";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<bool>(true, rules.validate("letter", "AC"), bool_s);
             assert<bool>(true, rules.validate("letter", "AD"), bool_s);
             assert<bool>(false, rules.validate("letter", "CB"), bool_s);
@@ -148,8 +143,7 @@ int main(int argc, char** argv)
         // Test multi rule matches
         {
             std::string rule = "letter = \"A\" | \"B\" , \"C\" | \"D\"; digit = \"0\" | \"1\" | \"2\" | \"3\"; word = letter , digit;";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<std::string>("word", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("word", "AC1"), bool_s);
             assert<bool>(false, rules.validate("word", "ABCD"), bool_s);
@@ -159,16 +153,14 @@ int main(int argc, char** argv)
         // Test repeat alternation
         {
             std::string rule = "letter = {\"A\" | \"B\" | \"C\" | \"D\"};";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<bool>(true, rules.validate("letter", "AAAABBBBCCCCDDD"), bool_s);
             assert<bool>(true, rules.validate("letter", "ABCDDCBAADCBCABD"), bool_s);
         }
         // Test repeat concatenation
         {
             std::string rule = "letter = {\"A\" | \"B\"} , {\"C\" | \"D\"};";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<bool>(true, rules.validate("letter", "AAAABBBBCCCCDDD"), bool_s);
             assert<bool>(true, rules.validate("letter", "ABABABACDCDCDC"), bool_s);
             assert<bool>(false, rules.validate("letter", "AAAABBBBCCCCDDDA"), bool_s);
@@ -176,8 +168,7 @@ int main(int argc, char** argv)
         // Test advanced repeat concatenation
         {
             std::string rule = "letter = {(\"A\" | \"B\") , (\"C\" | \"D\")};";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<bool>(true, rules.validate("letter", "ACBDBDAC"), bool_s);
             assert<bool>(false, rules.validate("letter", "ACBDBDACA"), bool_s);
             assert<bool>(false, rules.validate("letter", "ABCD"), bool_s);
@@ -185,8 +176,7 @@ int main(int argc, char** argv)
         // Test multi rule repeat
         {
             std::string rule = "letter = \"A\" | \"B\" | \"C\" | \"D\"; digit = \"0\" | \"1\" | \"2\" | \"3\"; word = { letter } , { digit };";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<std::string>("word", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("word", "ABCD0123"), bool_s);
             assert<bool>(false, rules.validate("word", "A1A"), bool_s);
@@ -195,8 +185,7 @@ int main(int argc, char** argv)
         // Test repeat multi rule concatenation
         {
             std::string rule = "letter = \"A\" , \"B\"; word = { letter };";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<std::string>("word", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("word", "ABABAB"), bool_s);
             assert<bool>(false, rules.validate("word", "BABABA"), bool_s);
@@ -206,8 +195,7 @@ int main(int argc, char** argv)
         // Priority brackets
         {
             std::string rule = "letter = { ( \"A\" | \")\" ) , ( \"C\" | \"D\" ) };";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<std::string>("letter", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("letter", "AC)D"), bool_s);
             assert<bool>(false, rules.validate("letter", "AC(D"), bool_s);
@@ -215,8 +203,7 @@ int main(int argc, char** argv)
         // Test recursive rule substitution
         {
             std::string rule = "letter = \"A\" | \"B\" | ( \"(\" , letter , \")\" ); word = { letter };";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<std::string>("word", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("word", "ABBAA"), bool_s);
             assert<bool>(true, rules.validate("word", "(A)BBAA"), bool_s);
@@ -226,24 +213,21 @@ int main(int argc, char** argv)
         // Test simple EBNF rules
         {
             std::string rule = "letter=\"A\"|\"B\"|\"C\"|\"D\"|\"E\"|\"F\"|\"G\"|\"H\"|\"I\"|\"J\"|\"K\"|\"L\"|\"M\"|\"N\"|\"O\"|\"P\"|\"Q\"|\"R\"|\"S\"|\"T\"|\"U\"|\"V\"|\"W\"|\"X\"|\"Y\"|\"Z\"|\"a\"|\"b\"|\"c\"|\"d\"|\"e\"|\"f\"|\"g\"|\"h\"|\"i\"|\"j\"|\"k\"|\"l\"|\"m\"|\"n\"|\"o\"|\"p\"|\"q\"|\"r\"|\"s\"|\"t\"|\"u\"|\"v\"|\"w\"|\"x\"|\"y\"|\"z\";digit=\"0\"|\"1\"|\"2\"|\"3\"|\"4\"|\"5\"|\"6\"|\"7\"|\"8\"|\"9\";symbol=\"[\"|\"]\"|\"{\"|\"}\"|\"(\"|\")\"|\"<\"|\">\"|\"'\"|'\"'|\"=\"|\"|\"|\".\"|\",\";character=letter|digit|symbol|\"_\";identifier=letter,{letter|digit|\"_\"};terminal=('\"',character,'\"');lhs=identifier;rhs=identifier|{terminal|\"|\"};rule=lhs,\"=\",rhs,\";\";grammar={rule};";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<std::string>("grammar", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("grammar", "letter=\"A\"|\"B\"|\"C\"|\"D\";word=letter;"), bool_s);
         }
         // Test recursive EBNF rules
         {
             std::string rule = "letter=\"A\"|\"B\"|\"C\"|\"D\"|\"E\"|\"F\"|\"G\"|\"H\"|\"I\"|\"J\"|\"K\"|\"L\"|\"M\"|\"N\"|\"O\"|\"P\"|\"Q\"|\"R\"|\"S\"|\"T\"|\"U\"|\"V\"|\"W\"|\"X\"|\"Y\"|\"Z\"|\"a\"|\"b\"|\"c\"|\"d\"|\"e\"|\"f\"|\"g\"|\"h\"|\"i\"|\"j\"|\"k\"|\"l\"|\"m\"|\"n\"|\"o\"|\"p\"|\"q\"|\"r\"|\"s\"|\"t\"|\"u\"|\"v\"|\"w\"|\"x\"|\"y\"|\"z\";digit=\"0\"|\"1\"|\"2\"|\"3\"|\"4\"|\"5\"|\"6\"|\"7\"|\"8\"|\"9\";symbol=\"[\"|\"]\"|\"{\"|\"}\"|\"(\"|\")\"|\"<\"|\">\"|\"'\"|'\"'|\"=\"|\"|\"|\".\"|\",\";character=letter|digit|symbol|\"_\";identifier=letter,{letter|digit|\"_\"};terminal=('\"',character,'\"');separator=\",\"|\"|\";expression=(identifier|terminal)|(\"{\",expression,\"}\")|(\"(\",expression,\")\");lhs=identifier;rhs=({expression,separator},expression)|expression;rule=lhs,\"=\",rhs,\";\";grammar={rule};";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<std::string>("grammar", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("grammar", "letter=\"A\"|\"B\",\"C\"|\"D\";word=letter;"), bool_s);
         }
         // Test nested recursive EBNF rules on itself
         {
             std::string rule = "letter=\"A\"|\"B\"|\"C\"|\"D\"|\"E\"|\"F\"|\"G\"|\"H\"|\"I\"|\"J\"|\"K\"|\"L\"|\"M\"|\"N\"|\"O\"|\"P\"|\"Q\"|\"R\"|\"S\"|\"T\"|\"U\"|\"V\"|\"W\"|\"X\"|\"Y\"|\"Z\"|\"a\"|\"b\"|\"c\"|\"d\"|\"e\"|\"f\"|\"g\"|\"h\"|\"i\"|\"j\"|\"k\"|\"l\"|\"m\"|\"n\"|\"o\"|\"p\"|\"q\"|\"r\"|\"s\"|\"t\"|\"u\"|\"v\"|\"w\"|\"x\"|\"y\"|\"z\";digit=\"0\"|\"1\"|\"2\"|\"3\"|\"4\"|\"5\"|\"6\"|\"7\"|\"8\"|\"9\";symbol=\"[\"|\"]\"|\"{\"|\"}\"|\"(\"|\")\"|\"<\"|\">\"|\"'\"|'\"'|\"=\"|\"|\"|\".\"|\",\"|\";\";character=letter|digit|symbol|\"_\";identifier=letter,{letter|digit|\"_\"};terminal=('\"',character,'\"')|(\"'\",character,\"'\");separator=\",\"|\"|\";term=identifier|terminal;expression=({term,separator},term)|(\"(\",expression,\")\")|(\"{\",expression,\"}\")|term;statement=({expression,separator},expression)|(\"(\",statement,\")\")|(\"{\",statement,\"}\")|expression;lhs=identifier;rhs=({statement,separator},statement)|statement;rule=lhs,\"=\",rhs,\";\";grammar={rule};";
-            std::vector<char> v(rule.begin(), rule.end());
-            Rules rules(v);
+            Rules rules(rule);
             assert<std::string>("grammar", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("grammar", rule), bool_s);
         }

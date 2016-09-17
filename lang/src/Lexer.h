@@ -7,10 +7,10 @@
 class Lexer
 {
 protected:
-    std::vector<char> _data;
     Rules _rules;
 public:
-    Lexer(const std::string& src, const std::string& rules);
+    Lexer(const std::string& rules);
+    bool isValid(const std::string& src) const;
 };
 
 #endif

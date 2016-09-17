@@ -7,14 +7,7 @@
 #include <stdexcept>
 #include <set>
 
-Rules::Rules(const std::string& filePath)
-{
-    _text = parse::read_file(filePath);
-    parseRules();
-    parseSymbols();
-}
-
-Rules::Rules(const std::vector<char>& rules) : _text(rules)
+Rules::Rules(const std::string& rules) : _text(rules)
 {
     parseRules();
     parseSymbols();

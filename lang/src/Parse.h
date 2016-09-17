@@ -5,7 +5,7 @@
 
 namespace parse
 {
-    std::vector<char> read_file(const std::string& file);
+    std::string read_file(const std::string& file);
     std::string& strip_single(std::string& str);
     std::string& strip_double(std::string& str);
     bool strip_quotes(std::string& str);

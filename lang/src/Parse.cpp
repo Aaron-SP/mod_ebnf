@@ -3,9 +3,9 @@
 #include <stdexcept>
 #include <algorithm>
 
-std::vector<char> parse::read_file(const std::string& filePath)
+std::string parse::read_file(const std::string& filePath)
 {
-    std::vector<char> data;
+    std::string data;
     std::ifstream file(filePath, std::ios::in | std::ios::binary | std::ios::ate);
     if (file.is_open())
     {
