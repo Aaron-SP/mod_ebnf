@@ -11,13 +11,13 @@ Rules::Rules(const std::string& filePath)
 {
     _text = parse::read_file(filePath);
     parseRules();
-    _root = parseSymbols();
+    parseSymbols();
 }
 
 Rules::Rules(const std::vector<char>& rules) : _text(rules)
 {
     parseRules();
-    _root = parseSymbols();
+    parseSymbols();
 }
 
 void Rules::parseRules()
@@ -57,7 +57,7 @@ void Rules::parseRules()
     }
 }
 
-std::string Rules::parseSymbols()
+void Rules::parseSymbols()
 {
     // Set will store all rhs symbols to determine the start symbol
     std::set<std::string> set;
@@ -84,17 +84,17 @@ std::string Rules::parseSymbols()
     }
 
     int count = 0;
-    std::string root;
     // only one lhs should have no rhs definition
     for (const auto& x : _tokenMap)
     {
         if (set.count(x.first) == 0)
         {
-            root = x.first;
+            _root = x.first;
             count++;
         }
     }
 
+    // Check for errors
     if (count > 1)
     {
         throw std::runtime_error("Multiple root symbols found");
@@ -103,7 +103,6 @@ std::string Rules::parseSymbols()
     {
         throw std::runtime_error("No root symbol found");
     }
-    return root;
 }
 
 bool Rules::validate(const std::string& token, const std::string& input, size_t& position) const

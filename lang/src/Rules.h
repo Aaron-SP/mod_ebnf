@@ -15,7 +15,7 @@ protected:
     std::string _root;
 protected:
     void parseRules();
-    std::string parseSymbols();
+    void parseSymbols();
     bool validate(const std::string& token, const std::string& input, size_t& position) const;
     bool matches(const SyntaxNode& node, const std::string& match, size_t& position) const;
 public:
