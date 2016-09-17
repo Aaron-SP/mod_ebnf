@@ -1,6 +1,8 @@
+// Copyright 2016 <Aaron Springstroh>
 #include "Lexer.h"
-#include <iostream>
 #include <chrono>
+#include <iostream>
+#include <string>
 
 std::string bool_s(const bool& b)
 {
@@ -24,7 +26,8 @@ template <class T> void assert(const T& lhs, const T& rhs, std::string(*f)(const
     }
     else
     {
-        throw std::runtime_error("Assert String Failed: '" + f(lhs) + "' is not equal to '" + f(rhs) + "'");
+        throw std::runtime_error("Assert String Failed: '" +
+            f(lhs) + "' is not equal to '" + f(rhs) + "'");
     }
 }
 
@@ -86,7 +89,8 @@ int main(int argc, char** argv)
         }
         // Test multiple root node exception
         {
-            std::string rule = "identifier = letter , { letter | digit | \"_\" };character = letter | digit | symbol | \"_\";";
+            std::string rule = "identifier = letter , { letter | digit | \"_\" };"
+                "character = letter | digit | symbol | \"_\";";
             std::string error = "Multiple root symbols found";
             assert_throw(make_rule, rule, error);
         }
@@ -142,7 +146,8 @@ int main(int argc, char** argv)
         }
         // Test multi rule matches
         {
-            std::string rule = "letter = \"A\" | \"B\" , \"C\" | \"D\"; digit = \"0\" | \"1\" | \"2\" | \"3\"; word = letter , digit;";
+            std::string rule = "letter = \"A\" | \"B\" , \"C\" | \"D\"; "
+                "digit = \"0\" | \"1\" | \"2\" | \"3\"; word = letter , digit;";
             Rules rules(rule);
             assert<std::string>("word", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("word", "AC1"), bool_s);
@@ -175,7 +180,8 @@ int main(int argc, char** argv)
         }
         // Test multi rule repeat
         {
-            std::string rule = "letter = \"A\" | \"B\" | \"C\" | \"D\"; digit = \"0\" | \"1\" | \"2\" | \"3\"; word = { letter } , { digit };";
+            std::string rule = "letter = \"A\" | \"B\" | \"C\" | \"D\"; "
+                "digit = \"0\" | \"1\" | \"2\" | \"3\"; word = { letter } , { digit };";
             Rules rules(rule);
             assert<std::string>("word", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("word", "ABCD0123"), bool_s);
@@ -202,7 +208,8 @@ int main(int argc, char** argv)
         }
         // Test recursive rule substitution
         {
-            std::string rule = "letter = \"A\" | \"B\" | ( \"(\" , letter , \")\" ); word = { letter };";
+            std::string rule = "letter = \"A\" | \"B\" | ( \"(\" , letter , \")\" ); "
+                "word = { letter };";
             Rules rules(rule);
             assert<std::string>("word", rules.getRoot(), string_s);
             assert<bool>(true, rules.validate("word", "ABBAA"), bool_s);

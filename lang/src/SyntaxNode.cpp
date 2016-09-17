@@ -1,11 +1,18 @@
+// Copyright 2016 <Aaron Springstroh>
 #include "SyntaxNode.h"
 #include "Parse.h"
 #include <algorithm>
 #include <iterator>
+#include <memory>
+#include <set>
+#include <stack>
+#include <string>
+#include <utility>
 
 SyntaxNode::SyntaxNode(NodeType type) : _type(type), _repeat(false) {}
 
-SyntaxNode::SyntaxNode(const std::string& symbol) : _symbol(symbol), _type(NodeType::LEAF), _repeat(false) {}
+SyntaxNode::SyntaxNode(const std::string& symbol)
+    : _symbol(symbol), _type(NodeType::LEAF), _repeat(false) {}
 
 void SyntaxNode::setLeft(SyntaxNode& left)
 {
@@ -69,7 +76,8 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
             // Check if there is text before a bracket
             if (end - start > 0)
             {
-                throw std::runtime_error("Braces must be fully delimited, found text before start brace");
+                throw std::runtime_error("Braces must be fully delimited, "
+                    "found text before start brace");
             }
             // Skip everything to after bracket
             start = end + 1;

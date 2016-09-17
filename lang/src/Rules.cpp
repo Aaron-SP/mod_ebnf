@@ -1,11 +1,14 @@
+// Copyright 2016 <Aaron Springstroh>
 #include "Rules.h"
 #include "Parse.h"
-
+#include <algorithm>
 #include <iostream>
 #include <iterator>
-#include <algorithm>
 #include <stdexcept>
+#include <string>
 #include <set>
+#include <utility>
+#include <vector>
 
 Rules::Rules(const std::string& rules) : _text(rules)
 {

@@ -1,15 +1,15 @@
+// Copyright 2016 <Aaron Springstroh>
 #ifndef  __LEXER__
 
-#include <memory>
-#include <string>
 #include "Rules.h"
+#include <string>
 
 class Lexer
 {
-protected:
+ protected:
     Rules _rules;
-public:
-    Lexer(const std::string& rules);
+ public:
+    explicit Lexer(const std::string& rules);
     bool isValid(const std::string& src) const;
 };
 

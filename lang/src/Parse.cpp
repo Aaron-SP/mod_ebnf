@@ -1,7 +1,9 @@
+// Copyright 2016 <Aaron Springstroh>
 #include "Parse.h"
+#include <algorithm>
 #include <fstream>
 #include <stdexcept>
-#include <algorithm>
+#include <string>
 
 std::string parse::read_file(const std::string& filePath)
 {
@@ -25,16 +27,14 @@ std::string parse::read_file(const std::string& filePath)
     return data;
 }
 
-std::string& parse::strip_single(std::string& str)
+void parse::strip_single(std::string& str)
 {
     str.erase(remove_if(str.begin(), str.end(), [](char chr) { return chr == '\''; }), str.end());
-    return str;
 }
 
-std::string& parse::strip_double(std::string& str)
+void parse::strip_double(std::string& str)
 {
     str.erase(remove_if(str.begin(), str.end(), [](char chr) { return chr == '\"'; }), str.end());
-    return str;
 }
 
 bool parse::strip_quotes(std::string& str)

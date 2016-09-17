@@ -1,25 +1,25 @@
+// Copyright 2016 <Aaron Springstroh>
 #ifndef __RULES__
 
 #include "SyntaxNode.h"
-
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 class Rules
 {
-protected:
+ protected:
     std::string _text;
     std::vector<std::string> _ruleList;
     std::map<std::string, SyntaxNode> _tokenMap;
     std::string _root;
-protected:
+ protected:
     void parseRules();
     void parseSymbols();
     bool validate(const std::string& token, const std::string& input, size_t& position) const;
     bool matches(const SyntaxNode& node, const std::string& match, size_t& position) const;
-public:
-    Rules(const std::string& rules);
+ public:
+    explicit Rules(const std::string& rules);
     const std::string& getRoot() const { return _root; }
     bool validate(const std::string& token, const std::string& input) const;
 };

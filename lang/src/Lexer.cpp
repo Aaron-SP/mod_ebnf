@@ -1,5 +1,7 @@
+// Copyright 2016 <Aaron Springstroh>
 #include "Lexer.h"
 #include "Parse.h"
+#include <string>
 
 Lexer::Lexer(const std::string& rules) : _rules(rules){}
 

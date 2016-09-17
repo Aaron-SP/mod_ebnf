@@ -1,6 +1,8 @@
+// Copyright 2016 <Aaron Springstroh>
 #include "Lexer.h"
-#include <iostream>
 #include "Parse.h"
+#include <iostream>
+#include <string>
 
 int main(int argc, char** argv)
 {
