@@ -106,7 +106,7 @@ std::string Rules::parseSymbols()
     return root;
 }
 
-bool Rules::validate(const std::string& token, const std::string& input, size_t& position)
+bool Rules::validate(const std::string& token, const std::string& input, size_t& position) const
 {
     auto iter = _tokenMap.find(token);
     if (iter != _tokenMap.end())
@@ -126,13 +126,13 @@ bool Rules::validate(const std::string& token, const std::string& input, size_t&
     }
 }
 
-bool Rules::validate(const std::string& token, const std::string& input)
+bool Rules::validate(const std::string& token, const std::string& input) const
 {
     size_t position = 0;
     return validate(token, input, position) && input.size() == position;
 }
 
-bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& position)
+bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& position) const
 {
     SyntaxNode* left = node.getLeft();
     SyntaxNode* right = node.getRight();

@@ -15,13 +15,13 @@ protected:
     std::string _root;
     void parseRules();
     std::string parseSymbols();
-    bool validate(const std::string& token, const std::string& input, size_t& position);
-    bool matches(const SyntaxNode& node, const std::string& match, size_t& position);
+    bool validate(const std::string& token, const std::string& input, size_t& position) const;
+    bool matches(const SyntaxNode& node, const std::string& match, size_t& position) const;
 public:
     Rules(const std::string& filePath);
     Rules(const std::vector<char>& rules);
     std::string getRoot() const { return _root; }
-    bool validate(const std::string& token, const std::string& input);
+    bool validate(const std::string& token, const std::string& input) const;
 };
 
 #endif
