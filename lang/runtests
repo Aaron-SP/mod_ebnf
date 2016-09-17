@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -e
+
 g++ -o test -std=c++14 src/test.cpp src/Lexer.cpp src/Rules.cpp src/SyntaxNode.cpp src/Parse.cpp -Isrc -lmingw32 -static
 mv test.exe bin/test.exe
 ./bin/test.exe
