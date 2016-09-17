@@ -9,12 +9,13 @@ class SyntaxNode
 {
 public:
     enum NodeType { LEAF, ALTER, CONCAT };
-private:
+protected:
     std::string _symbol;
     std::unique_ptr<SyntaxNode> _left;
     std::unique_ptr<SyntaxNode> _right;
     NodeType _type;
     bool _repeat;
+protected:
     static SyntaxNode reduce_node(std::stack<SyntaxNode>& stack, SyntaxNode::NodeType type);
     static void add_node(std::stack<SyntaxNode>& stack, SyntaxNode& rhs, SyntaxNode::NodeType type);
     void setLeft(SyntaxNode& next);
@@ -28,8 +29,8 @@ public:
     SyntaxNode(SyntaxNode&& node) = default;
     SyntaxNode& operator=(SyntaxNode&& node) = default;
     NodeType getType() const { return _type; };
-    SyntaxNode* getLeft() const { return _left.get(); }
-    SyntaxNode* getRight() const { return _right.get(); }
+    SyntaxNode const* getLeft() const { return _left.get(); }
+    SyntaxNode const* getRight() const { return _right.get(); }
     bool getRepeat() const { return _repeat; }
     const std::string& getSymbol() const { return _symbol; };
     void toSet(std::set<std::string>& out) const;

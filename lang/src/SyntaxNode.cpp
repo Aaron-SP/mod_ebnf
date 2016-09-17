@@ -148,8 +148,8 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
 
 void SyntaxNode::toSet(std::set<std::string>& out) const
 {
-    SyntaxNode* left = _left.get();
-    SyntaxNode* right = _right.get();
+    SyntaxNode const* left = _left.get();
+    SyntaxNode const* right = _right.get();
     if (left)
     {
         left->toSet(out);

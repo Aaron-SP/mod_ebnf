@@ -134,8 +134,8 @@ bool Rules::validate(const std::string& token, const std::string& input) const
 
 bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& position) const
 {
-    SyntaxNode* left = node.getLeft();
-    SyntaxNode* right = node.getRight();
+    SyntaxNode const* left = node.getLeft();
+    SyntaxNode const* right = node.getRight();
     const size_t size = match.size();
     const size_t start = position;
     const SyntaxNode::NodeType type = node.getType();

@@ -13,6 +13,7 @@ protected:
     std::vector<std::string> _ruleList;
     std::map<std::string, SyntaxNode> _tokenMap;
     std::string _root;
+protected:
     void parseRules();
     std::string parseSymbols();
     bool validate(const std::string& token, const std::string& input, size_t& position) const;
@@ -20,7 +21,7 @@ protected:
 public:
     Rules(const std::string& filePath);
     Rules(const std::vector<char>& rules);
-    std::string getRoot() const { return _root; }
+    const std::string& getRoot() const { return _root; }
     bool validate(const std::string& token, const std::string& input) const;
 };
 
