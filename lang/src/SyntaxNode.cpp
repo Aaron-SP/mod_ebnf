@@ -158,7 +158,7 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
     {
         ref.simplify();
     }
-    return std::move(stack.top());
+    return std::move(ref);
 }
 
 void SyntaxNode::extract_symbols(std::set<std::string>& out) const
@@ -183,18 +183,18 @@ void SyntaxNode::extract_symbols(std::set<std::string>& out) const
     }
 }
 
-void SyntaxNode::extract_symbols(std::vector<std::string>& out)
+void SyntaxNode::extract_leafs(std::vector<std::string>& out)
 {
     SyntaxNode * left = _left.get();
     SyntaxNode * right = _right.get();
     if (left)
     {
-        left->extract_symbols(out);
+        left->extract_leafs(out);
         _left.release();
     }
     if (right)
     {
-        right->extract_symbols(out);
+        right->extract_leafs(out);
         _right.release();
     }
     if (_type == NodeType::LEAF)
@@ -223,6 +223,6 @@ bool SyntaxNode::can_simplify() const
 void SyntaxNode::simplify()
 {
     // Make a vector of symbols for speed optimization
-    extract_symbols(_simple);
+    extract_leafs(_simple);
     _type = NodeType::SIMPLE_LEAF;
 }

@@ -21,7 +21,7 @@ class SyntaxNode
  protected:
     static SyntaxNode reduce_node(std::stack<SyntaxNode>& stack, SyntaxNode::NodeType type);
     static void add_node(std::stack<SyntaxNode>& stack, SyntaxNode& rhs, SyntaxNode::NodeType type);
-    void extract_symbols(std::vector<std::string>& out);
+    void extract_leafs(std::vector<std::string>& out);
     void set_left(SyntaxNode& next);
     void set_right(SyntaxNode& next);
     void set_type(NodeType type) { _type = type; }
