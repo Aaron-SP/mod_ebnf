@@ -10,6 +10,8 @@
 #include <utility>
 #include <vector>
 
+const int MAGIC_ALLOCATION_SIZE = 128;
+
 Rules::Rules(const std::string& rules) : _text(rules)
 {
     parseRules();
@@ -21,7 +23,7 @@ void Rules::parseRules()
     // white space list
     std::vector<char> ws{ 9, 10, 13, 32 };
     std::string rule;
-    rule.reserve(_text.size());
+    rule.reserve(MAGIC_ALLOCATION_SIZE);
     char quote_char = 0;
     bool quotes = false;
 
@@ -69,7 +71,7 @@ void Rules::parseSymbols()
             // process rhs
             SyntaxNode node = SyntaxNode::tokenize(token, equality);
             // Add symbols to set
-            node.toSet(set);
+            node.extractSymbols(set);
             // map lhs to rhs for processing
             _tokenMap.insert(std::pair<std::string, SyntaxNode>(token, std::move(node)));
         }

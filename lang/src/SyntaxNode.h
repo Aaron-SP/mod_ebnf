@@ -34,7 +34,7 @@ class SyntaxNode
     SyntaxNode const* getRight() const { return _right.get(); }
     bool getRepeat() const { return _repeat; }
     const std::string& getSymbol() const { return _symbol; }
-    void toSet(std::set<std::string>& out) const;
+    void extractSymbols(std::set<std::string>& out) const;
 };
 
 #endif

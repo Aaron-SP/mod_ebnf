@@ -154,17 +154,17 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
     return std::move(stack.top());
 }
 
-void SyntaxNode::toSet(std::set<std::string>& out) const
+void SyntaxNode::extractSymbols(std::set<std::string>& out) const
 {
     SyntaxNode const* left = _left.get();
     SyntaxNode const* right = _right.get();
     if (left)
     {
-        left->toSet(out);
+        left->extractSymbols(out);
     }
     if (right)
     {
-        right->toSet(out);
+        right->extractSymbols(out);
     }
     if (_type == NodeType::LEAF)
     {
