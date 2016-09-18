@@ -19,22 +19,22 @@ class SyntaxNode
  protected:
     static SyntaxNode reduce_node(std::stack<SyntaxNode>& stack, SyntaxNode::NodeType type);
     static void add_node(std::stack<SyntaxNode>& stack, SyntaxNode& rhs, SyntaxNode::NodeType type);
-    void setLeft(SyntaxNode& next);
-    void setRight(SyntaxNode& next);
-    void setType(NodeType type) { _type = type; }
-    void setRepeat(bool repeat) { _repeat = repeat; }
+    void set_left(SyntaxNode& next);
+    void set_right(SyntaxNode& next);
+    void set_type(NodeType type) { _type = type; }
+    void set_repeat(bool repeat) { _repeat = repeat; }
  public:
     static SyntaxNode tokenize(const std::string& token, const std::string& equality);
     explicit SyntaxNode(NodeType type);
     explicit SyntaxNode(const std::string& symbol);
     SyntaxNode(SyntaxNode&& node) = default;
     SyntaxNode& operator=(SyntaxNode&& node) = default;
-    NodeType getType() const { return _type; }
-    SyntaxNode const* getLeft() const { return _left.get(); }
-    SyntaxNode const* getRight() const { return _right.get(); }
-    bool getRepeat() const { return _repeat; }
-    const std::string& getSymbol() const { return _symbol; }
-    void extractSymbols(std::set<std::string>& out) const;
+    NodeType get_type() const { return _type; }
+    SyntaxNode const* get_left() const { return _left.get(); }
+    SyntaxNode const* get_right() const { return _right.get(); }
+    bool get_repeat() const { return _repeat; }
+    const std::string& get_symbol() const { return _symbol; }
+    void extract_symbols(std::set<std::string>& out) const;
 };
 
 #endif

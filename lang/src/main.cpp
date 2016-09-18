@@ -13,7 +13,7 @@ int main(int argc, char** argv)
             std::string src = parse::read_file(argv[1]);
             std::string rule = parse::read_file(argv[2]);
             Lexer lexer(rule);
-            if (lexer.isValid(src))
+            if (lexer.is_valid(src))
             {
                 std::cout << "Source is valid!" << std::endl;
             }

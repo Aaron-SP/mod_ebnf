@@ -10,7 +10,7 @@ class Lexer
     Rules _rules;
  public:
     explicit Lexer(const std::string& rules);
-    bool isValid(const std::string& src) const;
+    bool is_valid(const std::string& src) const;
 };
 
 #endif

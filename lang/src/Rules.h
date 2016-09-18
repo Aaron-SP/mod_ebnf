@@ -14,13 +14,13 @@ class Rules
     std::map<std::string, SyntaxNode> _tokenMap;
     std::string _root;
  protected:
-    void parseRules();
-    void parseSymbols();
+    void parse_rules();
+    void parse_symbols();
     bool validate(const std::string& token, const std::string& input, size_t& position) const;
     bool matches(const SyntaxNode& node, const std::string& match, size_t& position) const;
  public:
     explicit Rules(const std::string& rules);
-    const std::string& getRoot() const { return _root; }
+    const std::string& get_root() const { return _root; }
     bool validate(const std::string& token, const std::string& input) const;
 };
 

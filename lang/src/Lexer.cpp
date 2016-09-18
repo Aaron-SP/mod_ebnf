@@ -5,7 +5,7 @@
 
 Lexer::Lexer(const std::string& rules) : _rules(rules){}
 
-bool Lexer::isValid(const std::string& src) const
+bool Lexer::is_valid(const std::string& src) const
 {
-    return _rules.validate(_rules.getRoot(), src);
+    return _rules.validate(_rules.get_root(), src);
 }

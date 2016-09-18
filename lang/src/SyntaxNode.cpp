@@ -14,12 +14,12 @@ SyntaxNode::SyntaxNode(NodeType type) : _type(type), _repeat(false) {}
 SyntaxNode::SyntaxNode(const std::string& symbol)
     : _symbol(symbol), _type(NodeType::LEAF), _repeat(false) {}
 
-void SyntaxNode::setLeft(SyntaxNode& left)
+void SyntaxNode::set_left(SyntaxNode& left)
 {
     _left = std::make_unique<SyntaxNode>(std::move(left));
 }
 
-void SyntaxNode::setRight(SyntaxNode& right)
+void SyntaxNode::set_right(SyntaxNode& right)
 {
     _right = std::make_unique<SyntaxNode>(std::move(right));
 }
@@ -28,7 +28,7 @@ SyntaxNode SyntaxNode::reduce_node(std::stack<SyntaxNode>& stack, SyntaxNode::No
 {
     SyntaxNode root(type);
     SyntaxNode& lhs = stack.top();
-    root.setLeft(lhs);
+    root.set_left(lhs);
     stack.pop();
 
     return root;
@@ -39,7 +39,7 @@ void SyntaxNode::add_node(std::stack<SyntaxNode>& stack, SyntaxNode& rhs, Syntax
     if (stack.size() > 0)
     {
         SyntaxNode root = reduce_node(stack, type);
-        root.setRight(rhs);
+        root.set_right(rhs);
         stack.push(std::move(root));
     }
     else
@@ -89,7 +89,7 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
             SyntaxNode again = tokenize(token, equality.substr(start, end - start));
             if (last_bracket == '{')
             {
-                again.setRepeat(true);
+                again.set_repeat(true);
             }
             stack.push(std::move(again));
             cache = true;
@@ -154,20 +154,20 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
     return std::move(stack.top());
 }
 
-void SyntaxNode::extractSymbols(std::set<std::string>& out) const
+void SyntaxNode::extract_symbols(std::set<std::string>& out) const
 {
     SyntaxNode const* left = _left.get();
     SyntaxNode const* right = _right.get();
     if (left)
     {
-        left->extractSymbols(out);
+        left->extract_symbols(out);
     }
     if (right)
     {
-        right->extractSymbols(out);
+        right->extract_symbols(out);
     }
     if (_type == NodeType::LEAF)
     {
-        out.insert(this->getSymbol());
+        out.insert(this->get_symbol());
     }
 }

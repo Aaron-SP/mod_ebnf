@@ -14,11 +14,11 @@ const int MAGIC_ALLOCATION_SIZE = 128;
 
 Rules::Rules(const std::string& rules) : _text(rules)
 {
-    parseRules();
-    parseSymbols();
+    parse_rules();
+    parse_symbols();
 }
 
-void Rules::parseRules()
+void Rules::parse_rules()
 {
     // white space list
     std::vector<char> ws{ 9, 10, 13, 32 };
@@ -55,7 +55,7 @@ void Rules::parseRules()
     }
 }
 
-void Rules::parseSymbols()
+void Rules::parse_symbols()
 {
     // Set will store all rhs symbols to determine the start symbol
     std::set<std::string> set;
@@ -71,7 +71,7 @@ void Rules::parseSymbols()
             // process rhs
             SyntaxNode node = SyntaxNode::tokenize(token, equality);
             // Add symbols to set
-            node.extractSymbols(set);
+            node.extract_symbols(set);
             // map lhs to rhs for processing
             _tokenMap.insert(std::pair<std::string, SyntaxNode>(token, std::move(node)));
         }
@@ -131,13 +131,13 @@ bool Rules::validate(const std::string& token, const std::string& input) const
 
 bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& position) const
 {
-    SyntaxNode const* left = node.getLeft();
-    SyntaxNode const* right = node.getRight();
+    SyntaxNode const* left = node.get_left();
+    SyntaxNode const* right = node.get_right();
     const size_t size = match.size();
     const size_t start = position;
-    const SyntaxNode::NodeType type = node.getType();
-    const std::string& symbol = node.getSymbol();
-    const bool repeat = node.getRepeat();
+    const SyntaxNode::NodeType type = node.get_type();
+    const std::string& symbol = node.get_symbol();
+    const bool repeat = node.get_repeat();
 
     // If null pointer than it is a leaf
     if ((!left || !right) && type != SyntaxNode::LEAF)

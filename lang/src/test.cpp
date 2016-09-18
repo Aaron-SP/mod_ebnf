@@ -73,7 +73,7 @@ int main(int argc, char** argv)
         {
             std::string rule = "identifier = letter , { letter | digit | \"_\" };";
             Rules rules(rule);
-            assert<std::string>("identifier", rules.getRoot(), string_s);
+            assert<std::string>("identifier", rules.get_root(), string_s);
         }
         // Test no closing quote
         {
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
             std::string rule = "letter = \"A\" | \"B\" , \"C\" | \"D\"; "
                 "digit = \"0\" | \"1\" | \"2\" | \"3\"; word = letter , digit;";
             Rules rules(rule);
-            assert<std::string>("word", rules.getRoot(), string_s);
+            assert<std::string>("word", rules.get_root(), string_s);
             assert<bool>(true, rules.validate("word", "AC1"), bool_s);
             assert<bool>(false, rules.validate("word", "ABCD"), bool_s);
             assert<bool>(false, rules.validate("word", "0123"), bool_s);
@@ -183,7 +183,7 @@ int main(int argc, char** argv)
             std::string rule = "letter = \"A\" | \"B\" | \"C\" | \"D\"; "
                 "digit = \"0\" | \"1\" | \"2\" | \"3\"; word = { letter } , { digit };";
             Rules rules(rule);
-            assert<std::string>("word", rules.getRoot(), string_s);
+            assert<std::string>("word", rules.get_root(), string_s);
             assert<bool>(true, rules.validate("word", "ABCD0123"), bool_s);
             assert<bool>(false, rules.validate("word", "A1A"), bool_s);
             assert<bool>(false, rules.validate("word", "ABCDE01234"), bool_s);
@@ -192,7 +192,7 @@ int main(int argc, char** argv)
         {
             std::string rule = "letter = \"A\" , \"B\"; word = { letter };";
             Rules rules(rule);
-            assert<std::string>("word", rules.getRoot(), string_s);
+            assert<std::string>("word", rules.get_root(), string_s);
             assert<bool>(true, rules.validate("word", "ABABAB"), bool_s);
             assert<bool>(false, rules.validate("word", "BABABA"), bool_s);
             assert<bool>(false, rules.validate("word", "AABAB"), bool_s);
@@ -202,7 +202,7 @@ int main(int argc, char** argv)
         {
             std::string rule = "letter = { ( \"A\" | \")\" ) , ( \"C\" | \"D\" ) };";
             Rules rules(rule);
-            assert<std::string>("letter", rules.getRoot(), string_s);
+            assert<std::string>("letter", rules.get_root(), string_s);
             assert<bool>(true, rules.validate("letter", "AC)D"), bool_s);
             assert<bool>(false, rules.validate("letter", "AC(D"), bool_s);
         }
@@ -211,7 +211,7 @@ int main(int argc, char** argv)
             std::string rule = "letter = \"A\" | \"B\" | ( \"(\" , letter , \")\" ); "
                 "word = { letter };";
             Rules rules(rule);
-            assert<std::string>("word", rules.getRoot(), string_s);
+            assert<std::string>("word", rules.get_root(), string_s);
             assert<bool>(true, rules.validate("word", "ABBAA"), bool_s);
             assert<bool>(true, rules.validate("word", "(A)BBAA"), bool_s);
             assert<bool>(false, rules.validate("word", "(A)C"), bool_s);
@@ -231,7 +231,7 @@ int main(int argc, char** argv)
                 "lhs=identifier;rhs=identifier|{terminal|\"|\"};"
                 "rule=lhs,\"=\",rhs,\";\";grammar={rule};";
             Rules rules(rule);
-            assert<std::string>("grammar", rules.getRoot(), string_s);
+            assert<std::string>("grammar", rules.get_root(), string_s);
             assert<bool>(true, rules.validate("grammar", "letter=\"A\"|\"B\"|\"C\"|\"D\";word=letter;"), bool_s);
         }
         // Test recursive EBNF rules
@@ -250,7 +250,7 @@ int main(int argc, char** argv)
                 "lhs=identifier;rhs=({expression,separator},expression)|expression;"
                 "rule=lhs,\"=\",rhs,\";\";grammar={rule};";
             Rules rules(rule);
-            assert<std::string>("grammar", rules.getRoot(), string_s);
+            assert<std::string>("grammar", rules.get_root(), string_s);
             assert<bool>(true, rules.validate("grammar", "letter=\"A\"|\"B\",\"C\"|\"D\";word=letter;"), bool_s);
         }
         // Test nested recursive EBNF rules on itself
@@ -271,7 +271,7 @@ int main(int argc, char** argv)
                 "lhs=identifier;rhs=({statement,separator},statement)|statement;"
                 "rule=lhs,\"=\",rhs,\";\";grammar={rule};";
             Rules rules(rule);
-            assert<std::string>("grammar", rules.getRoot(), string_s);
+            assert<std::string>("grammar", rules.get_root(), string_s);
             assert<bool>(true, rules.validate("grammar", rule), bool_s);
         }
 
