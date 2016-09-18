@@ -8,6 +8,7 @@
 #include <stack>
 #include <string>
 #include <utility>
+#include <vector>
 
 SyntaxNode::SyntaxNode(NodeType type) : _type(type), _repeat(false) {}
 
@@ -151,6 +152,12 @@ SyntaxNode SyntaxNode::tokenize(const std::string& token, const std::string& equ
     {
         throw std::runtime_error("Stack is in an indeterminant state");
     }
+    // If we can simplify this to a simple vector
+    SyntaxNode& ref = stack.top();
+    if (ref.can_simplify())
+    {
+        ref.simplify();
+    }
     return std::move(stack.top());
 }
 
@@ -170,4 +177,52 @@ void SyntaxNode::extract_symbols(std::set<std::string>& out) const
     {
         out.insert(this->get_symbol());
     }
+    else if (_type == NodeType::SIMPLE_LEAF)
+    {
+        std::move(_simple.begin(), _simple.end(), std::inserter(out, out.end()));
+    }
+}
+
+void SyntaxNode::extract_symbols(std::vector<std::string>& out)
+{
+    SyntaxNode * left = _left.get();
+    SyntaxNode * right = _right.get();
+    if (left)
+    {
+        left->extract_symbols(out);
+        _left.release();
+    }
+    if (right)
+    {
+        right->extract_symbols(out);
+        _right.release();
+    }
+    if (_type == NodeType::LEAF)
+    {
+        out.push_back(std::move(this->get_symbol()));
+    }
+}
+
+bool SyntaxNode::can_simplify() const
+{
+    bool out = true;
+    SyntaxNode const* left = _left.get();
+    SyntaxNode const* right = _right.get();
+    if (left)
+    {
+        out = out && left->can_simplify();
+    }
+    if (right)
+    {
+        out = out && right->can_simplify();
+    }
+    // Only alternations for all children == true
+    return out && (_type != NodeType::CONCAT) && !_repeat;
+ }
+
+void SyntaxNode::simplify()
+{
+    // Make a vector of symbols for speed optimization
+    extract_symbols(_simple);
+    _type = NodeType::SIMPLE_LEAF;
 }

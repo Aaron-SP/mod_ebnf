@@ -136,11 +136,13 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
     const size_t size = match.size();
     const size_t start = position;
     const SyntaxNode::NodeType type = node.get_type();
-    const std::string& symbol = node.get_symbol();
+    std::string const* symbol = &node.get_symbol();
     const bool repeat = node.get_repeat();
+    const std::vector<std::string>& simplified = node.get_simplified();
+    const bool is_simple = simplified.size() > 0;
 
     // If null pointer than it is a leaf
-    if ((!left || !right) && type != SyntaxNode::LEAF)
+    if ((!left || !right) && type > SyntaxNode::LEAF)
     {
         throw std::runtime_error("Rules.matches(): null pointer");
     }
@@ -150,28 +152,55 @@ bool Rules::matches(const SyntaxNode& node, const std::string& match, size_t& po
     {
         return false;
     }
-    else if (type == SyntaxNode::LEAF)
+    // SIMPLE_LEAF or LEAF node
+    else if (type < SyntaxNode::ALTER)
     {
-        if (symbol.size() == 1)
+        bool match_found = false;
+        const size_t symbols = is_simple ? simplified.size() : 1;
+        const size_t stop = repeat ? size : start + 1;
+        for (size_t i = 0; i < symbols; i++)
         {
-            const size_t stop = repeat ? size : start + 1;
-            for (size_t i = start; i < stop; i++)
+            if (position == stop)
             {
-                if (symbol[0] != match[i])
+                break;
+            }
+
+            if (is_simple)
+            {
+                symbol = &simplified[i];
+            }
+            if (symbol->size() == 1)
+            {
+                for (size_t j = position; j < stop; j++)
+                {
+                    if ((*symbol)[0] != match[j])
+                    {
+                        break;
+                    }
+                    position++;
+                    match_found = true;
+                }
+                // Start over
+                if(is_simple && match_found && repeat)
+                {
+                    i = -1;
+                    match_found = false;
+                    continue;
+                }
+                else if (is_simple && match_found && !repeat)
                 {
                     break;
                 }
-                position++;
             }
-        }
-        else if (symbol.size() > 1)
-        {
-            // Short circuit evaluation, repeat and non-repeat
-            while (validate(symbol, match, position) && repeat) {}
-        }
-        else
-        {
-            throw std::runtime_error("Symbol has zero size, invalid state occured");
+            else if (symbol->size() > 1)
+            {
+                // Short circuit evaluation, repeat and non-repeat
+                while (validate(*symbol, match, position) && repeat) {}
+            }
+            else
+            {
+                throw std::runtime_error("Symbol has zero size, invalid state occured");
+            }
         }
     }
     else if (type == SyntaxNode::ALTER)
