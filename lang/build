@@ -2,5 +2,5 @@
 
 set -e
 
-g++ -o lang -std=c++14 src/main.cpp src/Lexer.cpp src/Rules.cpp src/SyntaxNode.cpp src/Parse.cpp -Isrc -lmingw32 -static
+g++ -o lang -std=c++14 -O2 -march=native src/main.cpp src/Lexer.cpp src/Rules.cpp src/SyntaxNode.cpp src/Parse.cpp -Isrc -lmingw32 -static
 mv lang.exe bin/
