@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+
+g++ -o mod_ebnf -std=c++14 -O2 -march=native src/main.cpp src/Lexer.cpp src/Rules.cpp src/SyntaxNode.cpp src/Parse.cpp -Isrc -lmingw32 -static
+mv mod_ebnf.exe bin/

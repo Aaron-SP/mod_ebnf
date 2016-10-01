@@ -1,7 +1,7 @@
-lang.sln
-lang.VC.db
-lang.VC.VC.opendb
+mod_ebnf.sln
+mod_ebnf.VC.db
+mod_ebnf.VC.VC.opendb
 .vs/*
-lang/bin
-lang/vs
-lang/test
+mod_ebnf/bin
+mod_ebnf/vs
+mod_ebnf/test
